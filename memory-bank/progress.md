@@ -12,17 +12,22 @@
 - [x] 批次 3A：图表详情页（21 个图表教学内容 + 示例表格 + 带入生成器）
 - [x] 批次 3B：生成器页面（8 种图表 ECharts 配置 + 字段映射 UI）
 - [x] memory-bank 文档补齐
+- [x] GitHub Pages 部署上线（HashRouter + GitHub Actions）
+
+## 线上地址
+
+https://antdad2023.github.io/DataVisualisation/
 
 ## 待完成
 
-- [ ] 推送到 GitHub（本地已提交，网络问题待推送：`git push origin main`）
-- [ ] 批次 4：文档完善 + 部署配置
 - [ ] 单元测试覆盖
+- [ ] 图表导出 PNG（可选）
+- [ ] 更多图表加入生成器（可选）
 
 ## 已知问题
 
-- Git push 因网络问题失败，需用户网络恢复后手动执行
 - React Router 有两条 Future Flag Warning（不影响功能，后续升级时处理）
+- Vite 构建有 chunk 大小警告（844KB > 500KB），后续可做代码分割优化
 
 ## 验证记录
 
@@ -31,3 +36,4 @@
 | 2026-02-10 | 首页渲染 + 导航跳转 | ✅ 通过 |
 | 2026-02-10 | 图表库 21 种图表卡片 + 分类筛选 | ✅ 通过 |
 | 2026-02-10 | 生成器：粘贴数据→解析→选字段→生成条形图 | ✅ 通过（截图确认） |
+| 2026-02-10 | GitHub Pages 部署 | ✅ Actions 构建+部署成功 |
