@@ -9,13 +9,13 @@
 
 | 批次 | 任务 | 状态 | 依赖 | 说明 |
 |------|------|------|------|------|
-| 0 | GitHub 仓库初始化 | ⏳ 等待用户创建 | 无 | 用户在 GitHub 上创建仓库后关联 |
-| 1 | 项目骨架初始化 | 🔲 待开始 | 批次0 | Vite+React+TS+TailwindCSS+路由+依赖 |
-| 2A | 首页 + 全局导航栏 | 🔲 待开始 | 批次1 | Home.tsx + Layout.tsx |
-| 2B | 图表库列表页 + 图表元数据 | 🔲 待开始 | 批次1 | chartsData.ts + ChartList.tsx |
-| 2C | 数据解析模块 | 🔲 待开始 | 批次1 | CSV解析 + 粘贴解析 + 数值列识别 |
-| 3A | 图表详情页（21个图表教学内容） | 🔲 待开始 | 批次2B | ChartDetail.tsx + 21个图表数据 |
-| 3B | 生成器页面（8种图表渲染） | 🔲 待开始 | 批次2C | Generator.tsx + 字段映射 + ECharts |
+| 0 | GitHub 仓库初始化 | ✅ 已完成 | 无 | github.com/AntDad2023/DataVisualisation |
+| 1 | 项目骨架初始化 | ✅ 已完成 | 批次0 | Vite+React+TS+TailwindCSS+路由+依赖 |
+| 2A | 首页 + 全局导航栏 | ✅ 已完成 | 批次1 | Home.tsx + Layout.tsx |
+| 2B | 图表库列表页 + 图表元数据 | ✅ 已完成 | 批次1 | chartsData.ts + ChartList.tsx（21种图表+7类筛选） |
+| 2C | 数据解析模块 | ✅ 已完成 | 批次1 | CSV解析 + 粘贴解析 + 数值列识别 |
+| 3A | 图表详情页（21个图表教学内容） | ✅ 已完成 | 批次2B | ChartDetail.tsx + 21个图表教学数据 |
+| 3B | 生成器页面（8种图表渲染） | ✅ 已完成 | 批次2C | Generator.tsx + 8种图表ECharts配置 |
 | 4 | 文档完善 + 部署配置 | 🔲 待开始 | 批次3 | README更新 + 部署脚本 |
 
 **状态说明**：✅ 已完成 | 🔄 进行中 | 🔲 待开始 | ⏳ 等待中 | ❌ 阻塞
