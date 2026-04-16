@@ -13,6 +13,7 @@ DataVisualisation/
 ├── .gitignore
 ├── README.md
 ├── docs/plans/                 # 产品设计文档与执行计划
+├── docs/articles/              # 项目内沉淀的文章与对外发布文案
 ├── memory-bank/                # 项目记忆库（设计/技术/架构/进度）
 └── src/
     ├── main.tsx                # React 入口，挂载 App + BrowserRouter
@@ -100,3 +101,7 @@ interface ChartMeta {
 3. **粘贴分隔符检测**：优先 Tab（Excel 复制），无 Tab 则用逗号
 4. **图表元数据集中管理**：chartsData.ts 一个文件管理 21 种图表，详情页和列表页共用
 5. **字段映射动态 UI**：Generator.tsx 根据 chartType 用 switch 渲染不同的下拉框组合
+
+## 文档产出补充
+
+- `docs/articles/2026-04-10-ai-coding-for-developers-wechat.md`：可直接发布的公众号文章 Markdown 成稿，主题为 AI 编程发展与普通开发者应对。

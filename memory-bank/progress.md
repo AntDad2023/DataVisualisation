@@ -24,6 +24,10 @@ https://antdad2023.github.io/DataVisualisation/
 - [ ] 图表导出 PNG（可选）
 - [ ] 更多图表加入生成器（可选）
 
+## 文档产出
+
+- [x] 新增公众号文章成稿：`docs/articles/2026-04-10-ai-coding-for-developers-wechat.md`
+
 ## 已知问题
 
 - React Router 有两条 Future Flag Warning（不影响功能，后续升级时处理）
