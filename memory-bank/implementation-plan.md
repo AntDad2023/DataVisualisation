@@ -1,6 +1,6 @@
 # 实现计划
 
-> 最后更新：2026-02-10
+> 最后更新：2026-04-22
 
 ## MVP 阶段（批次 0-3B）— ✅ 全部完成
 
@@ -42,17 +42,26 @@
 
 ---
 
-## 后续计划（待定）
+## 后续计划
 
-### 批次 4：文档完善 + 部署
-- [ ] 更新 README.md 为最终版
-- [ ] 配置 vite.config.ts base 路径（GitHub Pages）
-- [ ] `npm run build` 验证
-- [ ] 全站手动测试
+### 批次 4：文档完善 + 部署 ✅
+- [x] 更新 README.md 为最终版（含 Vitest 使用说明）
+- [x] 配置 vite.config.ts base 路径（GitHub Pages）
+- [x] `npm run build` 验证
+- [x] GitHub Pages 部署上线
+
+### 批次 5：单元测试覆盖 ✅
+- [x] 引入 Vitest（独立 `vitest.config.ts`，node 环境）
+- [x] tsconfig 构建时排除 `*.test.ts`，不污染产物
+- [x] `columnAnalyzer` 测试（13 用例，覆盖 80% 阈值、空单元格、边界）
+- [x] `pasteParser` 测试（12 用例，覆盖 Tab/逗号、CRLF、列数不一致、异常输入）
+- [x] `chartConfigs/{bar,histogram,boxplot}` 测试（共 16 用例，覆盖数值算法与降级分支）
+- [x] `npm run test:run` 全绿 + `npm run build` 通过
 
 ### 未来可选功能
 - [ ] 图表导出为 PNG
 - [ ] 自定义图表样式（颜色、标题）
 - [ ] 更多图表类型支持（雷达图、漏斗图等加入生成器）
 - [ ] 移动端适配
-- [ ] 单元测试覆盖
+- [ ] 测试扩展到 scatter/stackedBar/pie/line/heatmap（收益递减）
+- [ ] Vite 构建 chunk 代码分割优化

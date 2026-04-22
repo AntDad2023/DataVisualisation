@@ -1,6 +1,6 @@
 # 技术栈
 
-> 最后更新：2026-02-10
+> 最后更新：2026-04-22
 
 ## 核心依赖
 
@@ -25,6 +25,7 @@
 | @types/papaparse | ^5.3.15 | papaparse 类型定义 |
 | @types/react | ^19.0.8 | React 类型定义 |
 | @types/react-dom | ^19.0.3 | React DOM 类型定义 |
+| vitest | ^2.1.8 | 单元测试运行器（利用 Vite 转译，无额外配置） |
 
 ## 架构决策
 

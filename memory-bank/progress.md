@@ -1,6 +1,6 @@
 # 进度跟踪
 
-> 最后更新：2026-02-10
+> 最后更新：2026-04-22
 
 ## MVP 阶段
 
@@ -13,6 +13,7 @@
 - [x] 批次 3B：生成器页面（8 种图表 ECharts 配置 + 字段映射 UI）
 - [x] memory-bank 文档补齐
 - [x] GitHub Pages 部署上线（HashRouter + GitHub Actions）
+- [x] 批次 4：单元测试覆盖（Vitest + 41 条核心 utils 测试）
 
 ## 线上地址
 
@@ -20,9 +21,10 @@ https://antdad2023.github.io/DataVisualisation/
 
 ## 待完成
 
-- [ ] 单元测试覆盖
 - [ ] 图表导出 PNG（可选）
 - [ ] 更多图表加入生成器（可选）
+- [ ] Vite 构建 chunk 代码分割优化（可选）
+- [ ] 单元测试扩展到 scatter/stackedBar/pie/line/heatmap（可选，收益递减）
 
 ## 文档产出
 
@@ -41,3 +43,5 @@ https://antdad2023.github.io/DataVisualisation/
 | 2026-02-10 | 图表库 21 种图表卡片 + 分类筛选 | ✅ 通过 |
 | 2026-02-10 | 生成器：粘贴数据→解析→选字段→生成条形图 | ✅ 通过（截图确认） |
 | 2026-02-10 | GitHub Pages 部署 | ✅ Actions 构建+部署成功 |
+| 2026-04-22 | `npm run test:run` 全部单元测试 | ✅ 5 文件 / 41 用例全绿 |
+| 2026-04-22 | `npm run build` 生产构建（tsc + vite） | ✅ 通过 |

@@ -1,15 +1,16 @@
 # 项目架构
 
-> 最后更新：2026-02-10
+> 最后更新：2026-04-22
 
 ## 目录结构
 
 ```
 DataVisualisation/
 ├── index.html                  # Vite 入口 HTML
-├── package.json                # 依赖与脚本
+├── package.json                # 依赖与脚本（含 test/test:run）
 ├── vite.config.ts              # Vite 配置（React + TailwindCSS 插件）
-├── tsconfig.json               # TypeScript 配置
+├── vitest.config.ts            # Vitest 单元测试配置（node 环境，独立于生产构建）
+├── tsconfig.json               # TypeScript 配置（build 时排除 *.test.ts）
 ├── .gitignore
 ├── README.md
 ├── docs/plans/                 # 产品设计文档与执行计划
@@ -34,6 +35,9 @@ DataVisualisation/
         ├── csvParser.ts        # CSV 文件解析（papaparse）→ ParsedData
         ├── pasteParser.ts      # 粘贴文本解析（Tab/逗号分隔）→ ParsedData
         ├── columnAnalyzer.ts   # 数值列识别（80%阈值）
+        ├── __tests__/
+        │   ├── columnAnalyzer.test.ts   # 列类型识别单元测试（13 用例）
+        │   └── pasteParser.test.ts      # 粘贴解析单元测试（12 用例）
         └── chartConfigs/
             ├── index.ts        # 统一导出 + SUPPORTED_CHART_TYPES 列表
             ├── bar.ts          # 条形图 ECharts 配置生成
@@ -43,7 +47,11 @@ DataVisualisation/
             ├── pie.ts          # 饼图配置生成
             ├── histogram.ts    # 直方图配置生成（手动分箱）
             ├── boxplot.ts      # 箱线图配置生成（手动计算五数概括）
-            └── heatmap.ts      # 热力图配置生成
+            ├── heatmap.ts      # 热力图配置生成
+            └── __tests__/
+                ├── bar.test.ts         # 条形图 option 生成测试（5 用例）
+                ├── histogram.test.ts   # 直方图分箱逻辑测试（6 用例）
+                └── boxplot.test.ts     # 箱线图五数概括测试（5 用例）
 ```
 
 ## 数据流
@@ -101,6 +109,14 @@ interface ChartMeta {
 3. **粘贴分隔符检测**：优先 Tab（Excel 复制），无 Tab 则用逗号
 4. **图表元数据集中管理**：chartsData.ts 一个文件管理 21 种图表，详情页和列表页共用
 5. **字段映射动态 UI**：Generator.tsx 根据 chartType 用 switch 渲染不同的下拉框组合
+6. **测试与构建分离**：`vitest.config.ts` 独立配置，`tsconfig.json` 在 build 时排除 `*.test.ts`，保证 `npm run build` 产物不包含测试代码，测试只用 node 环境，不引入 jsdom 以保持启动最快
+
+## 测试策略
+
+- **范围**：只针对 `src/utils/` 下的纯函数（数据解析、列类型识别、图表 option 生成），不测试 React 组件（避免引入 jsdom / React Testing Library 带来的维护成本）
+- **运行命令**：`npm run test:run`（一次性执行）/ `npm test`（watch 模式）
+- **命名约定**：测试文件与被测文件同级的 `__tests__/` 目录下，以 `*.test.ts` 命名
+- **覆盖重点**：边界条件（80% 阈值、空输入、列数不一致、非数值单元格），以及容易出 bug 的数值算法（直方图分箱、箱线图五数概括）
 
 ## 文档产出补充
 
