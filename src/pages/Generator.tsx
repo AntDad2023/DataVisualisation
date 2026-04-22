@@ -95,6 +95,19 @@ function Generator() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
+  // 动态生成：字段映射 / 图表类型 / 数据 变化时自动重算图表
+  // - 字段完整 → 立即更新预览（所见即所得）
+  // - 字段不全 → 保留上次成功的图表，不显示 error（避免用户编辑过程中被"缺字段"红提示骚扰）
+  //   用户点"生成图表"按钮时走 handleGenerate，才会把 error 显式打出来
+  useEffect(() => {
+    if (!parsedData) return
+    const result = buildChartOption(parsedData, chartType, fieldMapping)
+    if (result.ok) {
+      setError('')
+      setChartOption(result.option)
+    }
+  }, [parsedData, chartType, fieldMapping])
+
   // 处理 CSV 上传
   const handleFileUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0]
@@ -196,15 +209,34 @@ function Generator() {
                 {allColumns.map((col) => <option key={col} value={col}>{col}</option>)}
               </select>
             </label>
-            <label className="block mb-3">
-              <span className="text-sm font-medium text-gray-700 mb-1 block">Y 轴列（可多选，按住 Ctrl）</span>
-              <select className={selectClass} multiple value={fieldMapping.yFields as string[] || []} onChange={(e) => {
-                const selected = Array.from(e.target.selectedOptions, (opt) => opt.value)
-                setFieldMapping({ ...fieldMapping, yFields: selected })
-              }} style={{ minHeight: '80px' }}>
-                {numericColumns.map((col) => <option key={col} value={col}>{col}</option>)}
-              </select>
-            </label>
+            <div className="block mb-3">
+              <span className="text-sm font-medium text-gray-700 mb-1 block">Y 轴列（勾选一个或多个数值列）</span>
+              <div className="border border-gray-300 rounded-lg p-2 max-h-40 overflow-y-auto">
+                {numericColumns.length === 0 ? (
+                  <p className="text-sm text-gray-400 px-2 py-1">数据中没有数值列</p>
+                ) : (
+                  numericColumns.map((col) => {
+                    const current = (fieldMapping.yFields as string[]) || []
+                    const checked = current.includes(col)
+                    return (
+                      <label key={col} className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 px-2 py-1 rounded">
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={(e) => {
+                            const next = e.target.checked
+                              ? [...current, col]
+                              : current.filter((x) => x !== col)
+                            setFieldMapping({ ...fieldMapping, yFields: next })
+                          }}
+                        />
+                        <span className="text-sm text-gray-700">{col}</span>
+                      </label>
+                    )
+                  })
+                )}
+              </div>
+            </div>
           </>
         )
 
@@ -349,21 +381,34 @@ function Generator() {
                 {stringColumns.map((col) => <option key={col} value={col}>{col}</option>)}
               </select>
             </label>
-            <label className="block mb-3">
-              <span className="text-sm font-medium text-gray-700 mb-1 block">维度列（可多选，按住 Ctrl/Cmd）</span>
-              <select
-                className={selectClass}
-                multiple
-                value={fieldMapping.valueFields as string[] || []}
-                onChange={(e) => {
-                  const selected = Array.from(e.target.selectedOptions, (opt) => opt.value)
-                  setFieldMapping({ ...fieldMapping, valueFields: selected })
-                }}
-                style={{ minHeight: '120px' }}
-              >
-                {numericColumns.map((col) => <option key={col} value={col}>{col}</option>)}
-              </select>
-            </label>
+            <div className="block mb-3">
+              <span className="text-sm font-medium text-gray-700 mb-1 block">维度列（勾选至少 3 个数值列）</span>
+              <div className="border border-gray-300 rounded-lg p-2 max-h-48 overflow-y-auto">
+                {numericColumns.length === 0 ? (
+                  <p className="text-sm text-gray-400 px-2 py-1">数据中没有数值列</p>
+                ) : (
+                  numericColumns.map((col) => {
+                    const current = (fieldMapping.valueFields as string[]) || []
+                    const checked = current.includes(col)
+                    return (
+                      <label key={col} className="flex items-center gap-2 cursor-pointer hover:bg-gray-50 px-2 py-1 rounded">
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          onChange={(e) => {
+                            const next = e.target.checked
+                              ? [...current, col]
+                              : current.filter((x) => x !== col)
+                            setFieldMapping({ ...fieldMapping, valueFields: next })
+                          }}
+                        />
+                        <span className="text-sm text-gray-700">{col}</span>
+                      </label>
+                    )
+                  })
+                )}
+              </div>
+            </div>
           </>
         )
 

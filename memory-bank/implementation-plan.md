@@ -58,6 +58,17 @@
 - [x] `chartConfigs/{bar,histogram,boxplot}` 测试（共 16 用例，覆盖数值算法与降级分支）
 - [x] `npm run test:run` 全绿 + `npm run build` 通过
 
+### 批次 8：生成器"动态设置"UX 升级 ✅
+- [x] `Generator.tsx` 新增动态生成 useEffect，依赖 `[parsedData, chartType, fieldMapping]`
+  - 字段完整 → 立即调用 `buildChartOption` + `setChartOption`（所见即所得）
+  - 字段不全 → 保留上次成功的图表，不更新 error（避免"还没选完就报红字"）
+- [x] `line.yFields` / `radar.valueFields` 的 `<select multiple>` 改为 checkbox 列表
+  - 不再需要 Ctrl+click，勾选状态一目了然
+  - 有"数据中没有数值列"的空状态兜底
+  - 滚动容器 max-h-40/48，长列表不溢出
+- [x] 保留"生成图表"按钮作为明确触发 + 错误诊断入口
+- [x] Puppeteer 端到端验证动态生成与 checkbox 交互
+
 ### 批次 7：修复"带入生成器"只传图表类型的 bug ✅
 - [x] `ChartMeta` 加 `defaultMapping?: Record<string, string|string[]>` 字段
 - [x] 11 条 generatorSupported: true 的记录写死 defaultMapping（覆盖 bar/stacked-bar/line/scatter/pie/histogram/boxplot/heatmap/area/radar/funnel）

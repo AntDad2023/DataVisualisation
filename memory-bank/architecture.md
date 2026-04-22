@@ -134,6 +134,8 @@ interface ChartMeta {
     - Generator 挂载 useEffect 读 storage → 填 state → 直接用 payload 调 `buildChartOption`（不依赖 setState 时序）→ 清理 storage
     - 单元测试层面通过 11 条端到端断言（每个 generatorSupported 图表 × defaultMapping × exampleData 必须产出有效 option）锁死该契约，未来任何改动一破即红
 11. **chartOptionBuilder 纯函数**：组件外导出，接收 `(data, chartType, mapping)` 返回 `{ok, option} | {ok:false, error}`。同时服务于手动生成与 autofill，集中校验逻辑、便于测试
+12. **动态生成（所见即所得）**：Generator 用 useEffect 监听 `[parsedData, chartType, fieldMapping]`，字段完整时立即重算图表，字段不全则保留上次成功图表、不干扰用户编辑。"生成图表"按钮作为明确触发入口 + 错误诊断（点击后会把 builder 的 error 打到红框里）
+13. **多选字段用 checkbox 列表而非 `<select multiple>`**：HTML multi-select 的 Ctrl+click 交互对新手极不友好（从截图诊断来看，用户常把"列表里看见 = 已选中"）。`line.yFields` 和 `radar.valueFields` 改为 checkbox 列表，勾选状态一眼可见，无需键盘辅助
 
 ## 测试策略
 

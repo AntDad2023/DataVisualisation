@@ -28,6 +28,11 @@
   - [x] Generator 挂载时读 sessionStorage → 填充数据 + 字段映射 → 立即生成图表 → 清理 storage
   - [x] 补测：新增 `chartOptionBuilder.test.ts`（18 条，含 11 条端到端断言）+ `exampleToParsedData.test.ts`（5 条）
   - [x] 端到端自动化验证：Puppeteer 模拟点击"带入生成器"→ Generator 自动渲染 canvas，流程打通
+- [x] 批次 8：生成器"动态设置"UX 升级（修复用户反馈"功能只是摆设"）
+  - [x] 新增动态生成 useEffect：监听 [parsedData, chartType, fieldMapping]，字段完整时立即重算图表（所见即所得）；字段不全时保留上次成功的图表，不红字骚扰
+  - [x] `line.yFields` / `radar.valueFields` 的 `<select multiple>` 改为 **checkbox 列表**（不再需要按 Ctrl+click，勾选状态一目了然）
+  - [x] 保留"生成图表"按钮作为明确触发入口 + 字段不全时的错误诊断
+  - [x] Puppeteer 端到端验证：autofill → checkbox 默认勾选 → 切 X 轴下拉 → canvas 像素指纹立刻变（`changedCanvas: true`）
 
 ## 线上地址
 
@@ -83,3 +88,7 @@ https://antdad2023.github.io/DataVisualisation/
 | 2026-04-22 | `npm run test:run` 单元测试（批次 7 修复后） | ✅ 15 文件 / 98 用例全绿 |
 | 2026-04-22 | `npm run build` 生产构建（批次 7 后） | ✅ 通过 |
 | 2026-04-22 | Puppeteer 端到端：`/charts/heatmap` → 带入生成器 → 自动渲染 canvas + 字段预选（星期/时段/客流量） | ✅ 通过 |
+| 2026-04-22 | `npm run test:run` 批次 8 后 | ✅ 15 文件 / 98 用例全绿 |
+| 2026-04-22 | `npm run build` 批次 8 后 | ✅ 通过 |
+| 2026-04-22 | Puppeteer 端到端：折线图带入后 checkbox 默认勾选 + 改 X 轴下拉 canvas 像素指纹立刻变化 | ✅ 通过（动态生成生效） |
+| 2026-04-22 | Puppeteer：checkbox 点击切换勾选状态 + 字段不全时保留上次图表 | ✅ 通过 |
