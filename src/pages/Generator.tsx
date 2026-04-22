@@ -2,7 +2,10 @@ import { useState, useRef, useEffect, useCallback } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import ReactEChartsCore from 'echarts-for-react/lib/core'
 import * as echarts from 'echarts/core'
-import { BarChart, LineChart, ScatterChart, PieChart, HeatmapChart, BoxplotChart } from 'echarts/charts'
+import {
+  BarChart, LineChart, ScatterChart, PieChart,
+  HeatmapChart, BoxplotChart, RadarChart, FunnelChart,
+} from 'echarts/charts'
 import {
   TitleComponent, TooltipComponent, GridComponent,
   LegendComponent, VisualMapComponent,
@@ -21,11 +24,15 @@ import {
   generateHistogramOption,
   generateBoxplotOption,
   generateHeatmapOption,
+  generateAreaOption,
+  generateRadarOption,
+  generateFunnelOption,
 } from '../utils/chartConfigs'
 
 // 注册 ECharts 组件（按需加载，减小体积）
 echarts.use([
-  BarChart, LineChart, ScatterChart, PieChart, HeatmapChart, BoxplotChart,
+  BarChart, LineChart, ScatterChart, PieChart,
+  HeatmapChart, BoxplotChart, RadarChart, FunnelChart,
   TitleComponent, TooltipComponent, GridComponent, LegendComponent, VisualMapComponent,
   CanvasRenderer,
 ])
@@ -42,6 +49,24 @@ function Generator() {
   const [chartOption, setChartOption] = useState<object | null>(null)
 
   const fileInputRef = useRef<HTMLInputElement>(null)
+  const chartRef = useRef<ReactEChartsCore>(null)
+
+  // 下载当前图表为 PNG
+  const handleDownloadPng = useCallback(() => {
+    const instance = chartRef.current?.getEchartsInstance()
+    if (!instance) return
+    const url = instance.getDataURL({
+      type: 'png',
+      pixelRatio: 2,
+      backgroundColor: '#fff',
+    })
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `chart-${chartType}-${Date.now()}.png`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+  }, [chartType])
 
   // URL 参数中的图表类型
   useEffect(() => {
@@ -275,6 +300,74 @@ function Generator() {
           </>
         )
 
+      case 'area':
+        return (
+          <>
+            <label className="block mb-3">
+              <span className="text-sm font-medium text-gray-700 mb-1 block">X 轴列（时间/顺序）</span>
+              <select className={selectClass} value={fieldMapping.xField as string || ''} onChange={(e) => setFieldMapping({ ...fieldMapping, xField: e.target.value })}>
+                <option value="">请选择</option>
+                {allColumns.map((col) => <option key={col} value={col}>{col}</option>)}
+              </select>
+            </label>
+            <label className="block mb-3">
+              <span className="text-sm font-medium text-gray-700 mb-1 block">Y 轴数值列</span>
+              <select className={selectClass} value={fieldMapping.yField as string || ''} onChange={(e) => setFieldMapping({ ...fieldMapping, yField: e.target.value })}>
+                <option value="">请选择</option>
+                {numericColumns.map((col) => <option key={col} value={col}>{col}</option>)}
+              </select>
+            </label>
+          </>
+        )
+
+      case 'radar':
+        return (
+          <>
+            <label className="block mb-3">
+              <span className="text-sm font-medium text-gray-700 mb-1 block">对象名列（每行=一个对象）</span>
+              <select className={selectClass} value={fieldMapping.nameField as string || ''} onChange={(e) => setFieldMapping({ ...fieldMapping, nameField: e.target.value })}>
+                <option value="">请选择</option>
+                {stringColumns.map((col) => <option key={col} value={col}>{col}</option>)}
+              </select>
+            </label>
+            <label className="block mb-3">
+              <span className="text-sm font-medium text-gray-700 mb-1 block">维度列（可多选，按住 Ctrl/Cmd）</span>
+              <select
+                className={selectClass}
+                multiple
+                value={fieldMapping.valueFields as string[] || []}
+                onChange={(e) => {
+                  const selected = Array.from(e.target.selectedOptions, (opt) => opt.value)
+                  setFieldMapping({ ...fieldMapping, valueFields: selected })
+                }}
+                style={{ minHeight: '120px' }}
+              >
+                {numericColumns.map((col) => <option key={col} value={col}>{col}</option>)}
+              </select>
+            </label>
+          </>
+        )
+
+      case 'funnel':
+        return (
+          <>
+            <label className="block mb-3">
+              <span className="text-sm font-medium text-gray-700 mb-1 block">阶段名称列</span>
+              <select className={selectClass} value={fieldMapping.stageField as string || ''} onChange={(e) => setFieldMapping({ ...fieldMapping, stageField: e.target.value })}>
+                <option value="">请选择</option>
+                {allColumns.map((col) => <option key={col} value={col}>{col}</option>)}
+              </select>
+            </label>
+            <label className="block mb-3">
+              <span className="text-sm font-medium text-gray-700 mb-1 block">数值列</span>
+              <select className={selectClass} value={fieldMapping.valueField as string || ''} onChange={(e) => setFieldMapping({ ...fieldMapping, valueField: e.target.value })}>
+                <option value="">请选择</option>
+                {numericColumns.map((col) => <option key={col} value={col}>{col}</option>)}
+              </select>
+            </label>
+          </>
+        )
+
       default:
         return <p className="text-gray-400 text-sm">请选择图表类型</p>
     }
@@ -323,6 +416,18 @@ function Generator() {
         case 'heatmap':
           if (!fieldMapping.xField || !fieldMapping.yField || !fieldMapping.valueField) { setError('请选择 X 类别列、Y 类别列和数值列'); return }
           option = generateHeatmapOption(parsedData, { xField: fieldMapping.xField as string, yField: fieldMapping.yField as string, valueField: fieldMapping.valueField as string })
+          break
+        case 'area':
+          if (!fieldMapping.xField || !fieldMapping.yField) { setError('请选择 X 轴列和 Y 轴数值列'); return }
+          option = generateAreaOption(parsedData, { xField: fieldMapping.xField as string, yField: fieldMapping.yField as string })
+          break
+        case 'radar':
+          if (!fieldMapping.nameField || !((fieldMapping.valueFields as string[])?.length >= 3)) { setError('请选择对象名列和至少 3 个维度列'); return }
+          option = generateRadarOption(parsedData, { nameField: fieldMapping.nameField as string, valueFields: fieldMapping.valueFields as string[] })
+          break
+        case 'funnel':
+          if (!fieldMapping.stageField || !fieldMapping.valueField) { setError('请选择阶段列和数值列'); return }
+          option = generateFunnelOption(parsedData, { stageField: fieldMapping.stageField as string, valueField: fieldMapping.valueField as string })
           break
       }
 
@@ -464,9 +569,21 @@ function Generator() {
 
         {/* ===== 右侧面板：图表预览 ===== */}
         <div className="p-5 bg-white border border-gray-200 rounded-lg">
-          <h2 className="text-lg font-semibold text-gray-900 mb-4">图表预览</h2>
+          <div className="flex items-center justify-between mb-4">
+            <h2 className="text-lg font-semibold text-gray-900">图表预览</h2>
+            {chartOption && (
+              <button
+                onClick={handleDownloadPng}
+                className="px-3 py-1.5 bg-gray-100 text-gray-700 text-sm rounded-lg hover:bg-gray-200 transition-colors border border-gray-200"
+                title="下载当前图表为 PNG"
+              >
+                ⬇ 下载 PNG
+              </button>
+            )}
+          </div>
           {chartOption ? (
             <ReactEChartsCore
+              ref={chartRef}
               echarts={echarts}
               option={chartOption}
               style={{ height: '500px', width: '100%' }}

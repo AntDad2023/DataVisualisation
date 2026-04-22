@@ -4,6 +4,9 @@ node_modules/
 # Build output
 dist/
 
+# TypeScript incremental build cache
+*.tsbuildinfo
+
 # IDE
 .vscode/
 .idea/

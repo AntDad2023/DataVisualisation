@@ -13,18 +13,43 @@
 - [x] 批次 3B：生成器页面（8 种图表 ECharts 配置 + 字段映射 UI）
 - [x] memory-bank 文档补齐
 - [x] GitHub Pages 部署上线（HashRouter + GitHub Actions）
-- [x] 批次 4：单元测试覆盖（Vitest + 41 条核心 utils 测试）
+- [x] 批次 4：文档与部署（README 终稿 + Pages 上线）
+- [x] 批次 5：单元测试覆盖（Vitest + 41 条核心 utils 测试）
+- [x] 批次 6：生成器扩展 + 性能优化 + 全量测试
+  - [x] 新增 3 种图表：面积图、雷达图、漏斗图（共支持 **11 种**）
+  - [x] 图表预览区加"下载 PNG"按钮（getDataURL + 触发下载）
+  - [x] Vite manualChunks：echarts / react-vendor / app 三分包
+  - [x] 单元测试扩展到全部 11 种图表（共 **13 文件 / 75 用例**）
 
 ## 线上地址
 
 https://antdad2023.github.io/DataVisualisation/
 
-## 待完成
+## 生成器当前支持的图表（11 种）
 
-- [ ] 图表导出 PNG（可选）
-- [ ] 更多图表加入生成器（可选）
-- [ ] Vite 构建 chunk 代码分割优化（可选）
-- [ ] 单元测试扩展到 scatter/stackedBar/pie/line/heatmap（可选，收益递减）
+对比：条形图 / 堆叠柱状图 / 雷达图
+趋势：折线图 / 面积图
+占比：饼图
+分布：直方图 / 箱线图
+关系：散点图 / 热力图
+流向：漏斗图
+
+## 构建产物（代码分割后）
+
+| chunk | 大小（min） | gzip |
+|-------|------------|------|
+| `index.js`（应用代码） | 72.6 KB | 22.6 KB |
+| `react-vendor.js` | 167.6 KB | 54.7 KB |
+| `echarts.js` | 625.5 KB | 208.8 KB |
+| `index.css` | 15.5 KB | 4.0 KB |
+
+## 待完成（可选增强）
+
+- [ ] 引入 dynamic import() 让 /generator 路由下才加载 echarts（首屏再缩一半）
+- [ ] 堆叠面积图、气泡图、树图等其余 10 种图表的生成器支持
+- [ ] 图表自定义样式（颜色、标题）
+- [ ] 移动端适配优化
+- [ ] React Router v7 future flags 预置
 
 ## 文档产出
 
@@ -33,7 +58,7 @@ https://antdad2023.github.io/DataVisualisation/
 ## 已知问题
 
 - React Router 有两条 Future Flag Warning（不影响功能，后续升级时处理）
-- Vite 构建有 chunk 大小警告（844KB > 500KB），后续可做代码分割优化
+- ~~Vite 构建有 chunk 大小警告（844KB > 500KB）~~ → 批次 6 已通过 manualChunks 拆分 echarts/react，警告已消除
 
 ## 验证记录
 
@@ -43,5 +68,7 @@ https://antdad2023.github.io/DataVisualisation/
 | 2026-02-10 | 图表库 21 种图表卡片 + 分类筛选 | ✅ 通过 |
 | 2026-02-10 | 生成器：粘贴数据→解析→选字段→生成条形图 | ✅ 通过（截图确认） |
 | 2026-02-10 | GitHub Pages 部署 | ✅ Actions 构建+部署成功 |
-| 2026-04-22 | `npm run test:run` 全部单元测试 | ✅ 5 文件 / 41 用例全绿 |
-| 2026-04-22 | `npm run build` 生产构建（tsc + vite） | ✅ 通过 |
+| 2026-04-22 | `npm run test:run` 单元测试（批次 5） | ✅ 5 文件 / 41 用例 |
+| 2026-04-22 | `npm run build` 生产构建（批次 5） | ✅ 通过 |
+| 2026-04-22 | `npm run test:run` 单元测试（批次 6 扩展后） | ✅ 13 文件 / 75 用例全绿 |
+| 2026-04-22 | `npm run build` 生产构建（批次 6 分包后） | ✅ 通过，chunk 警告消除 |

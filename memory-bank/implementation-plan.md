@@ -58,10 +58,18 @@
 - [x] `chartConfigs/{bar,histogram,boxplot}` 测试（共 16 用例，覆盖数值算法与降级分支）
 - [x] `npm run test:run` 全绿 + `npm run build` 通过
 
+### 批次 6：生成器扩展 + 性能优化 + 全量测试 ✅
+- [x] 新增 `area.ts` / `radar.ts` / `funnel.ts` 三个 option 生成器
+- [x] `chartConfigs/index.ts` 更新 SUPPORTED_CHART_TYPES（11 种）
+- [x] `chartsData.ts`：area/radar/funnel 的 `generatorSupported=true`；雷达改为宽格式示例（对象名列 + 多维度列）
+- [x] `Generator.tsx`：注册 RadarChart/FunnelChart；新增 3 个字段映射 case；新增 chartRef + 下载 PNG 按钮（使用 getDataURL）
+- [x] `vite.config.ts`：加 manualChunks（echarts / react-vendor / app 三分包），消除 chunk 大小警告
+- [x] 补齐 8 个测试文件（scatter/stackedBar/pie/line/heatmap/area/radar/funnel）
+- [x] `npm run test:run` 13 文件 / 75 用例全绿；`npm run build` 通过，分包正确
+
 ### 未来可选功能
-- [ ] 图表导出为 PNG
+- [ ] 动态 import() 让 /generator 路由下才加载 echarts chunk（首屏再缩一半）
+- [ ] 其余图表（堆叠面积、气泡、树图、旭日、桑基、弦图等）加入生成器
 - [ ] 自定义图表样式（颜色、标题）
-- [ ] 更多图表类型支持（雷达图、漏斗图等加入生成器）
 - [ ] 移动端适配
-- [ ] 测试扩展到 scatter/stackedBar/pie/line/heatmap（收益递减）
-- [ ] Vite 构建 chunk 代码分割优化
+- [ ] React Router v7 future flags 预置

@@ -314,7 +314,7 @@ export const chartsData: ChartMeta[] = [
         ['2019', 50], ['2020', 65], ['2021', 80], ['2022', 95], ['2023', 120],
       ],
     },
-    generatorSupported: false,
+    generatorSupported: true,
   },
 
   // ===== 10. 堆叠面积图 =====
@@ -390,14 +390,16 @@ export const chartsData: ChartMeta[] = [
       '各维度的量纲差异很大',
       '需要精确比较数值',
     ],
-    dataRequirements: '需要多个数值列（每列代表一个维度）',
+    dataRequirements: '需要一个对象名列（如"角色"） + 多个数值维度列（每列一个能力）',
     exampleData: {
-      columns: ['能力', '得分'],
+      columns: ['角色', '攻击', '防御', '速度', '技巧', '体力'],
       rows: [
-        ['攻击', 85], ['防御', 70], ['速度', 90], ['技巧', 75], ['体力', 80],
+        ['战士', 85, 90, 60, 70, 95],
+        ['法师', 95, 55, 75, 90, 60],
+        ['刺客', 80, 60, 95, 85, 70],
       ],
     },
-    generatorSupported: false,
+    generatorSupported: true,
   },
 
   // ===== 13. 气泡图 =====
@@ -455,7 +457,7 @@ export const chartsData: ChartMeta[] = [
         ['浏览', 10000], ['加购', 3000], ['下单', 1500], ['付款', 1200], ['完成', 1000],
       ],
     },
-    generatorSupported: false,
+    generatorSupported: true,
   },
 
   // ===== 15. 树图 =====

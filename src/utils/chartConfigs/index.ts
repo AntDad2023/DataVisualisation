@@ -7,15 +7,21 @@ export { generatePieOption, type PieFieldMapping } from './pie'
 export { generateHistogramOption, type HistogramFieldMapping } from './histogram'
 export { generateBoxplotOption, type BoxplotFieldMapping } from './boxplot'
 export { generateHeatmapOption, type HeatmapFieldMapping } from './heatmap'
+export { generateAreaOption, type AreaFieldMapping } from './area'
+export { generateRadarOption, type RadarFieldMapping } from './radar'
+export { generateFunnelOption, type FunnelFieldMapping } from './funnel'
 
 // 生成器支持的图表类型 ID 列表
 export const SUPPORTED_CHART_TYPES = [
   { id: 'bar', name: '条形图' },
   { id: 'stacked-bar', name: '堆叠柱状图' },
   { id: 'line', name: '折线图' },
+  { id: 'area', name: '面积图' },
   { id: 'scatter', name: '散点图' },
   { id: 'pie', name: '饼图' },
   { id: 'histogram', name: '直方图' },
   { id: 'boxplot', name: '箱线图' },
   { id: 'heatmap', name: '热力图' },
+  { id: 'radar', name: '雷达图' },
+  { id: 'funnel', name: '漏斗图' },
 ] as const
