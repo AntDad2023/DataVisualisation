@@ -58,6 +58,26 @@
 - [x] `chartConfigs/{bar,histogram,boxplot}` 测试（共 16 用例，覆盖数值算法与降级分支）
 - [x] `npm run test:run` 全绿 + `npm run build` 通过
 
+### 批次 11：URL 直达生成器 autofill ✅
+- [x] 背景：用户分享 `/generator?chart=treemap` 链接时，之前只设了 chartType 没加数据，用户看到空白生成器很困惑
+- [x] 新增 `src/utils/autofillResolver.ts` 纯函数：
+  - 输入：`sessionStorageRaw: string | null` + `urlChartId: string | null` + 可选 `charts` 数组
+  - 逻辑：sessionStorage 合法 → 直接用；否则从 `chartsData` 里找 URL chart，若 `generatorSupported && defaultMapping` 则构造 payload
+  - 返回：`AutofillPayload | null`（null 表示"不填，让用户自己上传"）
+- [x] 容错设计：sessionStorage JSON 坏掉会自动降级到 URL 路径，不抛异常
+- [x] 可测试性：所有输入通过参数注入（包括 charts），不读全局状态
+- [x] 单测 9 条覆盖所有分支：
+  - sessionStorage 有合法 payload → 返回它
+  - sessionStorage 空 + URL 有效 → 从 chartsData 构造
+  - 两者同时 → sessionStorage 优先
+  - 全空 → null
+  - URL chart 在 chartsData 里不存在 → null
+  - URL chart 存在但 generatorSupported:false → null（例如力导图）
+  - sessionStorage JSON 损坏 → 降级到 URL
+  - sessionStorage 有但字段不全 → 降级到 URL
+- [x] Generator.tsx 的 autofill useEffect 调用 resolver，逻辑从 26 行缩到 15 行
+- [x] 23 文件 / 147 用例全绿 + build 通过
+
 ### 批次 10b：扩展 4 种新结构图表 ✅
 - [x] `hierarchyHelper.ts`：共享的"平铺→嵌套"树结构转换
   - 输入: `[[父,子,值]...]` 平铺行

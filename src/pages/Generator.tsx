@@ -17,6 +17,7 @@ import { parseCsvFile } from '../utils/csvParser'
 import { parsePastedText } from '../utils/pasteParser'
 import { SUPPORTED_CHART_TYPES } from '../utils/chartConfigs'
 import { buildChartOption } from '../utils/chartOptionBuilder'
+import { resolveAutofillPayload } from '../utils/autofillResolver'
 
 // 注册 ECharts 组件（按需加载，减小体积）
 echarts.use([
@@ -67,32 +68,26 @@ function Generator() {
     }
   }, [searchParams])
 
-  // 从图表详情页"带入生成器"传来的 sessionStorage autofill
-  // 数据结构：{ chartType, parsedData, defaultMapping }
-  // 行为：自动填充数据/映射 → 立即生成图表 → 清除 storage 避免二次触发
+  // 挂载时尝试 autofill：
+  // - 路径 1：sessionStorage['generator:autofill']（详情页按钮写入）
+  // - 路径 2：URL 参数 ?chart=xxx（用户直接访问/分享的链接）
+  // 交由 resolveAutofillPayload 纯函数决定用哪份数据，这里只负责 apply 到 state
   useEffect(() => {
     const raw = sessionStorage.getItem('generator:autofill')
-    if (!raw) return
-    sessionStorage.removeItem('generator:autofill')
-    try {
-      const payload = JSON.parse(raw) as {
-        chartType: string
-        parsedData: ParsedData
-        defaultMapping: Record<string, string | string[]>
-      }
-      setParsedData(payload.parsedData)
-      setChartType(payload.chartType)
-      setFieldMapping(payload.defaultMapping)
-      // 直接用 payload 调用 builder，避免依赖尚未更新的 state
-      const result = buildChartOption(payload.parsedData, payload.chartType, payload.defaultMapping)
-      if (result.ok) {
-        setError('')
-        setChartOption(result.option)
-      } else {
-        setError(result.error)
-      }
-    } catch (err) {
-      console.error('带入生成器失败：autofill 解析异常', err)
+    if (raw) sessionStorage.removeItem('generator:autofill')
+    const payload = resolveAutofillPayload(raw, searchParams.get('chart'))
+    if (!payload) return
+
+    setParsedData(payload.parsedData)
+    setChartType(payload.chartType)
+    setFieldMapping(payload.defaultMapping)
+    // 直接用 payload 调用 builder，避免依赖尚未更新的 state
+    const result = buildChartOption(payload.parsedData, payload.chartType, payload.defaultMapping)
+    if (result.ok) {
+      setError('')
+      setChartOption(result.option)
+    } else {
+      setError(result.error)
     }
     // 只在挂载时执行一次
     // eslint-disable-next-line react-hooks/exhaustive-deps

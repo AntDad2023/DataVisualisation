@@ -144,6 +144,14 @@ interface ChartMeta {
 16. **层级数据平铺 → 嵌套转换**：`hierarchyHelper.rowsToHierarchy` 把 `[父,子,值]` 行扁平数据转为 ECharts `{name, value, children}` 嵌套结构。父节点 value 自动算作子节点之和（方便 tooltip）。`treemap` 和 `sunburst` 共用此 helper，只差 `series.type` 和样式，实现成本低
 17. **边列表 → `{nodes, links}` 转换**：`sankey.ts` 里把 `[[source,target,value]...]` 行扁平数据转为 ECharts 桑基图需要的双数组：`links` 保持原始顺序、`nodes` 从 source/target 两列 Set 去重而来。复杂度 O(n)，无需单独的 nodeField
 18. **平行坐标图的二态 data 格式**：无 nameField 时 `series.data` 是 `number[][]`（每项是多维数值数组）；有 nameField 时是 `{name, value:number[]}[]`。这是 ECharts 的约定，同一 generator 内部根据 mapping 自动切换输出形态
+19. **Autofill 两条路径 + 纯函数解耦**：Generator 挂载时自动填数据有两条来源：
+    - **sessionStorage**（详情页"带入生成器"按钮写入）—— 优先级最高
+    - **URL 参数 `?chart=xxx`**（用户直接访问/分享链接时）—— 用 chartsData 的 exampleData+defaultMapping 构造等价 payload
+    
+    决策逻辑抽成 `autofillResolver.resolveAutofillPayload(storageRaw, urlChartId, charts?)` 纯函数，Generator 只负责调用 + apply state。好处：
+    - URL 可分享（`/generator?chart=treemap` 点开就看到完整示例）
+    - 容错（storage JSON 损坏时自动降级到 URL）
+    - 可测试（9 条 Vitest 断言覆盖所有分支，不需要 jsdom）
 
 ## 测试策略
 
@@ -151,7 +159,7 @@ interface ChartMeta {
 - **运行命令**：`npm run test:run`（一次性执行）/ `npm test`（watch 模式）
 - **命名约定**：测试文件与被测文件同级的 `__tests__/` 目录下，以 `*.test.ts` 命名
 - **覆盖重点**：边界条件（80% 阈值、空输入、列数不一致、非数值单元格），以及容易出 bug 的数值算法（直方图分箱、箱线图五数概括、雷达图 max 计算）
-- **当前规模**：22 文件 / 138 用例，覆盖全部 18 种生成器图表、option builder 分发与字段冲突检测、示例数据转换、层级/边列表结构转换、所有 utils 纯函数
+- **当前规模**：23 文件 / 147 用例，覆盖全部 18 种生成器图表、option builder 分发与字段冲突检测、示例数据转换、层级/边列表结构转换、autofill 两路径决策、所有 utils 纯函数
 
 ## 文档产出补充
 

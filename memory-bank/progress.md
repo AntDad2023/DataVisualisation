@@ -33,6 +33,13 @@
   - [x] `line.yFields` / `radar.valueFields` 的 `<select multiple>` 改为 **checkbox 列表**（不再需要按 Ctrl+click，勾选状态一目了然）
   - [x] 保留"生成图表"按钮作为明确触发入口 + 字段不全时的错误诊断
   - [x] Puppeteer 端到端验证：autofill → checkbox 默认勾选 → 切 X 轴下拉 → canvas 像素指纹立刻变（`changedCanvas: true`）
+- [x] 批次 11：生成器支持 URL 直达 autofill（分享链接即用即得）
+  - [x] 新增 `autofillResolver.ts` 纯函数：决定用哪条 autofill 路径（sessionStorage 优先，URL `?chart=xxx` 收底）
+  - [x] URL 直达时从 `chartsData` 里查图表 `exampleData + defaultMapping`，构造与"带入生成器"按钮等价的 payload
+  - [x] 容错：sessionStorage JSON 损坏/字段不全时自动降级到 URL 路径，不抛异常
+  - [x] `Generator.tsx` autofill useEffect 调用 resolver，逻辑瘦身
+  - [x] 单测 9 条（sessionStorage/URL/两者同时/容错/降级/未支持图表的边界场景）
+  - [x] 意义：`/generator?chart=treemap` 这类 URL 现在点开就能看到数据+图表，方便社交分享和演示
 - [x] 批次 10b：生成器扩展 4 种新结构图表（树图 / 旭日图 / 桑基图 / 平行坐标图）
   - [x] 新增 `hierarchyHelper.ts`：平铺 `[父, 子, 值]` → 嵌套 `{name, value, children}` 的树结构转换（treemap/sunburst 共享）
   - [x] 新增 `treemap.ts` / `sunburst.ts`：复用 helper，不同的 series.type 和样式
@@ -126,3 +133,5 @@ https://antdad2023.github.io/DataVisualisation/
 | 2026-04-22 | `npm run test:run` 批次 10b 后 | ✅ 22 文件 / 138 用例全绿（+18 新用例） |
 | 2026-04-22 | `npm run build` 批次 10b 后 | ✅ 通过；app 85→92KB，echarts 626→711KB（新 4 chart + ParallelComponent） |
 | 2026-04-22 | 端到端 `it.each` 自动扩展到 18 个 generatorSupported 图表全部成图 | ✅ 通过 |
+| 2026-04-22 | `npm run test:run` 批次 11 后 | ✅ 23 文件 / 147 用例全绿（+9 autofillResolver 断言） |
+| 2026-04-22 | `npm run build` 批次 11 后 | ✅ 通过（app chunk +0.3KB） |
