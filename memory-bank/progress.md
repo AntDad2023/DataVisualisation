@@ -33,6 +33,12 @@
   - [x] `line.yFields` / `radar.valueFields` 的 `<select multiple>` 改为 **checkbox 列表**（不再需要按 Ctrl+click，勾选状态一目了然）
   - [x] 保留"生成图表"按钮作为明确触发入口 + 字段不全时的错误诊断
   - [x] Puppeteer 端到端验证：autofill → checkbox 默认勾选 → 切 X 轴下拉 → canvas 像素指纹立刻变（`changedCanvas: true`）
+- [x] 批次 9：字段互斥三层防御（修复用户反馈"X 和 Y 选同一列居然能画图"）
+  - [x] B 层：`chartOptionBuilder` 增加 `kind: 'conflict'` 错误分类，switch 前统一做字段唯一性扫描，发现重复立刻拦住，`binCount` 等非字段配置项白名单豁免
+  - [x] C 层：Generator 动态 useEffect 捕获 `kind:'conflict'` → setError + setChartOption(null)，让用户**立刻看到红字**而不是盯着旧图
+  - [x] A 层：10 个多字段图表（除 histogram 单字段）的下拉/复选框全部加 `disabled` 互斥 + "· 已用"/"· 已用作 X 轴"等明示标签，用户在 UI 层就选不出冲突
+  - [x] 补测：`chartOptionBuilder.test.ts` 新增"字段冲突检测"7 条断言（bar/line/stacked-bar/radar/heatmap 各覆盖 + binCount 豁免 + scatter 可选字段空字符串通过）
+  - [x] Puppeteer 端到端：autofill 折线图 → X 下拉里 "销售额(万) · 已用作 Y 轴" disabled / Y checkbox "销售额(万) · 已用作 X 轴" disabled
 
 ## 线上地址
 
@@ -92,3 +98,7 @@ https://antdad2023.github.io/DataVisualisation/
 | 2026-04-22 | `npm run build` 批次 8 后 | ✅ 通过 |
 | 2026-04-22 | Puppeteer 端到端：折线图带入后 checkbox 默认勾选 + 改 X 轴下拉 canvas 像素指纹立刻变化 | ✅ 通过（动态生成生效） |
 | 2026-04-22 | Puppeteer：checkbox 点击切换勾选状态 + 字段不全时保留上次图表 | ✅ 通过 |
+| 2026-04-22 | `npm run test:run` 批次 9 后 | ✅ 15 文件 / 105 用例全绿（+7 字段冲突断言） |
+| 2026-04-22 | `npm run build` 批次 9 后 | ✅ 通过 |
+| 2026-04-22 | Puppeteer：autofill 折线图后 X 下拉 `销售额(万) · 已用作 Y 轴` disabled | ✅ 通过 |
+| 2026-04-22 | Puppeteer：反向互斥——X 选 `销售额(万)` 后 Y checkbox `· 已用作 X 轴` disabled | ✅ 通过 |

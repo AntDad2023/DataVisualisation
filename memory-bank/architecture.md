@@ -136,6 +136,11 @@ interface ChartMeta {
 11. **chartOptionBuilder 纯函数**：组件外导出，接收 `(data, chartType, mapping)` 返回 `{ok, option} | {ok:false, error}`。同时服务于手动生成与 autofill，集中校验逻辑、便于测试
 12. **动态生成（所见即所得）**：Generator 用 useEffect 监听 `[parsedData, chartType, fieldMapping]`，字段完整时立即重算图表，字段不全则保留上次成功图表、不干扰用户编辑。"生成图表"按钮作为明确触发入口 + 错误诊断（点击后会把 builder 的 error 打到红框里）
 13. **多选字段用 checkbox 列表而非 `<select multiple>`**：HTML multi-select 的 Ctrl+click 交互对新手极不友好（从截图诊断来看，用户常把"列表里看见 = 已选中"）。`line.yFields` 和 `radar.valueFields` 改为 checkbox 列表，勾选状态一眼可见，无需键盘辅助
+14. **字段互斥三层防御**：严格禁止"一列同时给多个维度"（否则会画出"自己对自己"的无意义图表，如 X=销售额 Y=销售额 的折线）。三层协同：
+    - **A 层 UI 互斥**：`renderFieldMapping` 中用 `isUsedByOtherDim` 给 `<option>`/`<input type=checkbox>` 加 `disabled` + "· 已用"/"· 已用作 X 轴" 明示标签，用户在 UI 就选不出冲突
+    - **B 层 builder 校验**：`buildChartOption` 在 switch 前统一扫描所有字段值（排除 `binCount` 等非字段配置），冲突时返回 `kind:'conflict'` 带具体列名的 error
+    - **C 层 动态反馈**：Generator 动态 useEffect 对 `kind:'conflict'` 立刻 setError + setChartOption(null)，让用户立刻看到红字而不是盯着旧图
+15. **错误分类 `BuildChartOptionErrorKind`**：`incomplete`（字段没填全，编辑中静默）/ `conflict`（字段冲突，立刻红字）/ `unsupported`（未知图表类型）/ `runtime`（底层生成器异常）。把"严重到必须打扰用户"和"还在编辑中不打扰"分开处理，UX 既不迟钝也不吵闹
 
 ## 测试策略
 
@@ -143,7 +148,7 @@ interface ChartMeta {
 - **运行命令**：`npm run test:run`（一次性执行）/ `npm test`（watch 模式）
 - **命名约定**：测试文件与被测文件同级的 `__tests__/` 目录下，以 `*.test.ts` 命名
 - **覆盖重点**：边界条件（80% 阈值、空输入、列数不一致、非数值单元格），以及容易出 bug 的数值算法（直方图分箱、箱线图五数概括、雷达图 max 计算）
-- **当前规模**：15 文件 / 98 用例，覆盖全部 11 种生成器图表、option builder 分发、示例数据转换、所有 utils 纯函数
+- **当前规模**：15 文件 / 105 用例，覆盖全部 11 种生成器图表、option builder 分发与字段冲突检测、示例数据转换、所有 utils 纯函数
 
 ## 文档产出补充
 

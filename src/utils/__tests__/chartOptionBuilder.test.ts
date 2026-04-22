@@ -50,6 +50,79 @@ describe('buildChartOption', () => {
     })
   })
 
+  describe('字段冲突检测（防止一列同时给多个维度）', () => {
+    it('bar 的 X 轴和 Y 轴选择同一列应拦截', () => {
+      const r = buildChartOption(wideData, 'bar', { xField: '维度A', yField: '维度A' })
+      expect(r.ok).toBe(false)
+      if (!r.ok) {
+        expect(r.kind).toBe('conflict')
+        expect(r.error).toContain('维度A')
+        expect(r.error).toContain('多个维度')
+      }
+    })
+
+    it('line 的 X 轴出现在 yFields 中应拦截', () => {
+      const r = buildChartOption(wideData, 'line', {
+        xField: '维度A',
+        yFields: ['维度A', '维度B'],
+      })
+      expect(r.ok).toBe(false)
+      if (!r.ok) {
+        expect(r.kind).toBe('conflict')
+        expect(r.error).toContain('维度A')
+      }
+    })
+
+    it('stacked-bar 的 xField 和 seriesField 相同应拦截', () => {
+      const r = buildChartOption(wideData, 'stacked-bar', {
+        xField: '分组',
+        seriesField: '分组',
+        yField: '维度A',
+      })
+      expect(r.ok).toBe(false)
+      if (!r.ok) expect(r.kind).toBe('conflict')
+    })
+
+    it('radar 的 nameField 出现在 valueFields 中应拦截', () => {
+      const r = buildChartOption(wideData, 'radar', {
+        nameField: '名称',
+        valueFields: ['维度A', '维度B', '名称'],
+      })
+      expect(r.ok).toBe(false)
+      if (!r.ok) expect(r.kind).toBe('conflict')
+    })
+
+    it('heatmap 的三个字段不能任何两个相同', () => {
+      const r1 = buildChartOption(wideData, 'heatmap', {
+        xField: '名称', yField: '名称', valueField: '维度A',
+      })
+      expect(r1.ok).toBe(false)
+      if (!r1.ok) expect(r1.kind).toBe('conflict')
+
+      const r2 = buildChartOption(wideData, 'heatmap', {
+        xField: '名称', yField: '分组', valueField: '名称',
+      })
+      expect(r2.ok).toBe(false)
+      if (!r2.ok) expect(r2.kind).toBe('conflict')
+    })
+
+    it('histogram 的 valueField 与 binCount="10" 不冲突（binCount 不是字段）', () => {
+      // binCount 即使数值相同（比如 valueField='10'）也不参与字段校验
+      const r = buildChartOption(wideData, 'histogram', {
+        valueField: '维度A',
+        binCount: '10',
+      })
+      expect(r.ok).toBe(true)
+    })
+
+    it('scatter 的可选 categoryField 为空字符串不算冲突', () => {
+      const r = buildChartOption(wideData, 'scatter', {
+        xField: '维度A', yField: '维度B', categoryField: '',
+      })
+      expect(r.ok).toBe(true)
+    })
+  })
+
   describe('底层生成器异常应被包装为 error', () => {
     it('字段名不存在于数据时，不抛异常而返回 error 或 ok', () => {
       // xField 传了数据里不存在的列名；底层实现可能宽容处理也可能抛错

@@ -58,6 +58,22 @@
 - [x] `chartConfigs/{bar,histogram,boxplot}` 测试（共 16 用例，覆盖数值算法与降级分支）
 - [x] `npm run test:run` 全绿 + `npm run build` 通过
 
+### 批次 9：字段互斥三层防御 ✅
+- [x] **B 层（chartOptionBuilder）**：
+  - 新增 `BuildChartOptionErrorKind = 'incomplete' | 'conflict' | 'unsupported' | 'runtime'`
+  - 抽 `findDuplicateField(mapping)` helper，扫描所有字段值（含数组字段），排除 `binCount` 等非字段配置项
+  - `buildChartOption` 在 switch 之前统一校验，重复时返回 `{ok:false, error:'列 "X" 同时用于多个维度...', kind:'conflict'}`
+- [x] **C 层（动态 useEffect）**：
+  - 字段完整 → setChartOption + 清 error
+  - `kind:'conflict'` → setError + setChartOption(null)（显式清图，避免"看着旧图以为有效"）
+  - 其他 error（incomplete）保持静默，用户点"生成图表"才显式报错
+- [x] **A 层（UI 互斥）**：
+  - `renderFieldMapping` 头部定义 `isUsedByOtherDim(myKey, col)` helper
+  - 10 个多字段 case（除 histogram）的 `<option>` 和 checkbox `<input>` 全部加 `disabled` + "· 已用"/"· 已用作 X 轴" 明示标签
+  - disabled 选项灰度 + 不响应点击，用户从 UI 层面就选不出冲突
+- [x] 测试：`chartOptionBuilder.test.ts` 增加 "字段冲突检测" describe 块，覆盖 bar/line/stacked-bar/radar/heatmap、binCount 豁免、scatter 可选字段空字符串通过
+- [x] Puppeteer 端到端：autofill 折线图后正反两个方向都验证 disabled+标签生效
+
 ### 批次 8：生成器"动态设置"UX 升级 ✅
 - [x] `Generator.tsx` 新增动态生成 useEffect，依赖 `[parsedData, chartType, fieldMapping]`
   - 字段完整 → 立即调用 `buildChartOption` + `setChartOption`（所见即所得）

@@ -15,9 +15,42 @@ import {
 
 export type FieldMapping = Record<string, string | string[]>
 
+/**
+ * 错误分类：
+ * - `incomplete` 字段没填全（用户还在编辑，可静默）
+ * - `conflict`   字段重复占用（配置错误，必须立刻提示）
+ * - `unsupported` 不支持的图表类型
+ * - `runtime`   底层 option 生成器抛异常
+ */
+export type BuildChartOptionErrorKind = 'incomplete' | 'conflict' | 'unsupported' | 'runtime'
+
 export type BuildChartOptionResult =
   | { ok: true; option: object }
-  | { ok: false; error: string }
+  | { ok: false; error: string; kind?: BuildChartOptionErrorKind }
+
+/** 非字段名的 mapping 键（配置项），不参与字段唯一性校验 */
+const NON_FIELD_KEYS = new Set<string>(['binCount'])
+
+/**
+ * 检查 mapping 里是否有列名被同时赋给多个维度。
+ *
+ * 例如折线图把 X 轴和 Y 轴都选成"销售额(万)"——这样画出的图没有语义，
+ * 必须在成图前拦住并给用户明确提示，而不是让 ECharts 画出"自己对自己"的怪图。
+ */
+function findDuplicateField(mapping: FieldMapping): string | null {
+  const used: string[] = []
+  for (const [key, value] of Object.entries(mapping)) {
+    if (NON_FIELD_KEYS.has(key)) continue
+    if (typeof value === 'string' && value) used.push(value)
+    else if (Array.isArray(value)) used.push(...value.filter(Boolean))
+  }
+  const counts = new Map<string, number>()
+  for (const f of used) counts.set(f, (counts.get(f) || 0) + 1)
+  for (const [f, c] of counts) {
+    if (c > 1) return f
+  }
+  return null
+}
 
 /**
  * 根据图表类型、数据、字段映射构造 ECharts option。
@@ -28,7 +61,8 @@ export type BuildChartOptionResult =
  *
  * 设计原则：
  * - 纯函数：无副作用、不读写 DOM/storage
- * - 失败时返回 { ok: false, error }，不抛异常（图表生成器内部异常会被包装）
+ * - 失败时返回 { ok: false, error, kind }，不抛异常（图表生成器内部异常会被包装成 runtime）
+ * - 字段冲突（一列同时给两个维度）在 switch 前就拦下，所有图表共用
  */
 export function buildChartOption(
   data: ParsedData,
@@ -37,6 +71,16 @@ export function buildChartOption(
 ): BuildChartOptionResult {
   const s = (k: string) => (mapping[k] as string | undefined) || ''
   const arr = (k: string) => (mapping[k] as string[] | undefined) || []
+
+  // 字段唯一性校验：同一个列不能被同时用于多个维度
+  const dup = findDuplicateField(mapping)
+  if (dup) {
+    return {
+      ok: false,
+      error: `列 "${dup}" 同时用于多个维度，请为每个维度选择不同的列`,
+      kind: 'conflict',
+    }
+  }
 
   try {
     switch (chartType) {
