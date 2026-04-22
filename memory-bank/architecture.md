@@ -31,13 +31,17 @@ DataVisualisation/
     ├── data/
     │   └── chartsData.ts       # 21种图表元数据（类型定义 + 教学内容 + 示例数据）
     └── utils/
-        ├── types.ts            # ParsedData 接口定义（columns, rows, columnTypes）
-        ├── csvParser.ts        # CSV 文件解析（papaparse）→ ParsedData
-        ├── pasteParser.ts      # 粘贴文本解析（Tab/逗号分隔）→ ParsedData
-        ├── columnAnalyzer.ts   # 数值列识别（80%阈值）
+        ├── types.ts                  # ParsedData 接口定义（columns, rows, columnTypes）
+        ├── csvParser.ts              # CSV 文件解析（papaparse）→ ParsedData
+        ├── pasteParser.ts            # 粘贴文本解析（Tab/逗号分隔）→ ParsedData
+        ├── columnAnalyzer.ts         # 数值列识别（80%阈值）
+        ├── exampleToParsedData.ts    # ChartMeta.exampleData → ParsedData（供"带入生成器"复用）
+        ├── chartOptionBuilder.ts     # 根据 chartType + mapping 分发到具体 option 生成器，返回 {ok, option}|{ok:false, error}
         ├── __tests__/
-        │   ├── columnAnalyzer.test.ts   # 列类型识别单元测试（13 用例）
-        │   └── pasteParser.test.ts      # 粘贴解析单元测试（12 用例）
+        │   ├── columnAnalyzer.test.ts        # 列类型识别测试（13 用例）
+        │   ├── pasteParser.test.ts           # 粘贴解析测试（12 用例）
+        │   ├── exampleToParsedData.test.ts   # 示例数据转换测试（5 用例）
+        │   └── chartOptionBuilder.test.ts    # option builder + 11 种图表端到端测试（18 用例）
         └── chartConfigs/
             ├── index.ts        # 统一导出 + SUPPORTED_CHART_TYPES 列表（11 种）
             ├── bar.ts          # 条形图 ECharts 配置生成
@@ -124,6 +128,12 @@ interface ChartMeta {
 7. **Vite manualChunks 代码分割**：应用代码 / `echarts+zrender` / `react+react-dom+router` 分为三个 chunk，体积最大的 echarts 独立缓存，后续版本迭代不会让用户重新下载它
 8. **图表导出 PNG**：Generator.tsx 通过 `ref` 获取 ECharts 实例，调用 `getDataURL({type:'png', pixelRatio:2, backgroundColor:'#fff'})` 拿到 data URL，动态创建 `<a download>` 触发浏览器保存
 9. **雷达图数据布局约定**：一行 = 一个对象（nameField 列），多个数值列 = 多个维度；`max` 取每维度实际最大值 × 1.2 自动留 20% 余量，全 0 时兜底为 100
+10. **"带入生成器"端到端自动化**：
+    - `ChartMeta.defaultMapping` 写死每个 generatorSupported 图表的字段映射，与其 `exampleData` 一一对应
+    - ChartDetail 点击按钮时构造 ParsedData 写入 `sessionStorage['generator:autofill']`（不污染 URL，避免 base64 编码复杂度）
+    - Generator 挂载 useEffect 读 storage → 填 state → 直接用 payload 调 `buildChartOption`（不依赖 setState 时序）→ 清理 storage
+    - 单元测试层面通过 11 条端到端断言（每个 generatorSupported 图表 × defaultMapping × exampleData 必须产出有效 option）锁死该契约，未来任何改动一破即红
+11. **chartOptionBuilder 纯函数**：组件外导出，接收 `(data, chartType, mapping)` 返回 `{ok, option} | {ok:false, error}`。同时服务于手动生成与 autofill，集中校验逻辑、便于测试
 
 ## 测试策略
 
@@ -131,7 +141,7 @@ interface ChartMeta {
 - **运行命令**：`npm run test:run`（一次性执行）/ `npm test`（watch 模式）
 - **命名约定**：测试文件与被测文件同级的 `__tests__/` 目录下，以 `*.test.ts` 命名
 - **覆盖重点**：边界条件（80% 阈值、空输入、列数不一致、非数值单元格），以及容易出 bug 的数值算法（直方图分箱、箱线图五数概括、雷达图 max 计算）
-- **当前规模**：13 文件 / 75 用例，覆盖全部 11 种生成器图表 + 所有 utils 纯函数
+- **当前规模**：15 文件 / 98 用例，覆盖全部 11 种生成器图表、option builder 分发、示例数据转换、所有 utils 纯函数
 
 ## 文档产出补充
 

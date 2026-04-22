@@ -58,6 +58,16 @@
 - [x] `chartConfigs/{bar,histogram,boxplot}` 测试（共 16 用例，覆盖数值算法与降级分支）
 - [x] `npm run test:run` 全绿 + `npm run build` 通过
 
+### 批次 7：修复"带入生成器"只传图表类型的 bug ✅
+- [x] `ChartMeta` 加 `defaultMapping?: Record<string, string|string[]>` 字段
+- [x] 11 条 generatorSupported: true 的记录写死 defaultMapping（覆盖 bar/stacked-bar/line/scatter/pie/histogram/boxplot/heatmap/area/radar/funnel）
+- [x] 新增 `src/utils/chartOptionBuilder.ts`：把 Generator.tsx 的 55 行 switch 抽为纯函数，返回 `{ok, option}|{ok:false, error}`
+- [x] 新增 `src/utils/exampleToParsedData.ts`：把 ChartMeta.exampleData 转为 ParsedData（与 pasteParser 逻辑一致），供 ChartDetail 和单测共享
+- [x] `ChartDetail.tsx`：按钮 onClick 写 `sessionStorage['generator:autofill'] = {chartType, parsedData, defaultMapping}` 后 navigate
+- [x] `Generator.tsx`：新增 autofill useEffect，挂载时读 storage → 填充 state + 立即调 buildChartOption → 清理 storage
+- [x] 新增单测：chartOptionBuilder 18 条（含 11 条端到端断言所有 generatorSupported 图表必能成图）+ exampleToParsedData 5 条
+- [x] 15 文件 / 98 用例全绿 + build 通过 + Puppeteer 端到端验证通过
+
 ### 批次 6：生成器扩展 + 性能优化 + 全量测试 ✅
 - [x] 新增 `area.ts` / `radar.ts` / `funnel.ts` 三个 option 生成器
 - [x] `chartConfigs/index.ts` 更新 SUPPORTED_CHART_TYPES（11 种）

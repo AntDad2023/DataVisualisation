@@ -14,20 +14,8 @@ import { CanvasRenderer } from 'echarts/renderers'
 import type { ParsedData } from '../utils/types'
 import { parseCsvFile } from '../utils/csvParser'
 import { parsePastedText } from '../utils/pasteParser'
-import {
-  SUPPORTED_CHART_TYPES,
-  generateBarOption,
-  generateStackedBarOption,
-  generateLineOption,
-  generateScatterOption,
-  generatePieOption,
-  generateHistogramOption,
-  generateBoxplotOption,
-  generateHeatmapOption,
-  generateAreaOption,
-  generateRadarOption,
-  generateFunnelOption,
-} from '../utils/chartConfigs'
+import { SUPPORTED_CHART_TYPES } from '../utils/chartConfigs'
+import { buildChartOption } from '../utils/chartOptionBuilder'
 
 // 注册 ECharts 组件（按需加载，减小体积）
 echarts.use([
@@ -75,6 +63,37 @@ function Generator() {
       setChartType(urlChart)
     }
   }, [searchParams])
+
+  // 从图表详情页"带入生成器"传来的 sessionStorage autofill
+  // 数据结构：{ chartType, parsedData, defaultMapping }
+  // 行为：自动填充数据/映射 → 立即生成图表 → 清除 storage 避免二次触发
+  useEffect(() => {
+    const raw = sessionStorage.getItem('generator:autofill')
+    if (!raw) return
+    sessionStorage.removeItem('generator:autofill')
+    try {
+      const payload = JSON.parse(raw) as {
+        chartType: string
+        parsedData: ParsedData
+        defaultMapping: Record<string, string | string[]>
+      }
+      setParsedData(payload.parsedData)
+      setChartType(payload.chartType)
+      setFieldMapping(payload.defaultMapping)
+      // 直接用 payload 调用 builder，避免依赖尚未更新的 state
+      const result = buildChartOption(payload.parsedData, payload.chartType, payload.defaultMapping)
+      if (result.ok) {
+        setError('')
+        setChartOption(result.option)
+      } else {
+        setError(result.error)
+      }
+    } catch (err) {
+      console.error('带入生成器失败：autofill 解析异常', err)
+    }
+    // 只在挂载时执行一次
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [])
 
   // 处理 CSV 上传
   const handleFileUpload = useCallback(async (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -373,67 +392,18 @@ function Generator() {
     }
   }
 
-  // 生成图表
+  // 生成图表（统一走 buildChartOption）
   const handleGenerate = () => {
     if (!parsedData) {
       setError('请先上传或粘贴数据')
       return
     }
-    setError('')
-
-    try {
-      let option: object | null = null
-
-      switch (chartType) {
-        case 'bar':
-          if (!fieldMapping.xField || !fieldMapping.yField) { setError('请选择分类列和数值列'); return }
-          option = generateBarOption(parsedData, { xField: fieldMapping.xField as string, yField: fieldMapping.yField as string })
-          break
-        case 'stacked-bar':
-          if (!fieldMapping.xField || !fieldMapping.seriesField || !fieldMapping.yField) { setError('请选择分类列、分组列和数值列'); return }
-          option = generateStackedBarOption(parsedData, { xField: fieldMapping.xField as string, seriesField: fieldMapping.seriesField as string, yField: fieldMapping.yField as string })
-          break
-        case 'line':
-          if (!fieldMapping.xField || !(fieldMapping.yFields as string[])?.length) { setError('请选择 X 轴列和至少一个 Y 轴列'); return }
-          option = generateLineOption(parsedData, { xField: fieldMapping.xField as string, yFields: fieldMapping.yFields as string[] })
-          break
-        case 'scatter':
-          if (!fieldMapping.xField || !fieldMapping.yField) { setError('请选择 X 和 Y 数值列'); return }
-          option = generateScatterOption(parsedData, { xField: fieldMapping.xField as string, yField: fieldMapping.yField as string, categoryField: fieldMapping.categoryField as string || undefined })
-          break
-        case 'pie':
-          if (!fieldMapping.categoryField || !fieldMapping.valueField) { setError('请选择分类列和数值列'); return }
-          option = generatePieOption(parsedData, { categoryField: fieldMapping.categoryField as string, valueField: fieldMapping.valueField as string })
-          break
-        case 'histogram':
-          if (!fieldMapping.valueField) { setError('请选择数值列'); return }
-          option = generateHistogramOption(parsedData, { valueField: fieldMapping.valueField as string, binCount: Number(fieldMapping.binCount) || 10 })
-          break
-        case 'boxplot':
-          if (!fieldMapping.valueField) { setError('请选择数值列'); return }
-          option = generateBoxplotOption(parsedData, { valueField: fieldMapping.valueField as string, groupField: fieldMapping.groupField as string || undefined })
-          break
-        case 'heatmap':
-          if (!fieldMapping.xField || !fieldMapping.yField || !fieldMapping.valueField) { setError('请选择 X 类别列、Y 类别列和数值列'); return }
-          option = generateHeatmapOption(parsedData, { xField: fieldMapping.xField as string, yField: fieldMapping.yField as string, valueField: fieldMapping.valueField as string })
-          break
-        case 'area':
-          if (!fieldMapping.xField || !fieldMapping.yField) { setError('请选择 X 轴列和 Y 轴数值列'); return }
-          option = generateAreaOption(parsedData, { xField: fieldMapping.xField as string, yField: fieldMapping.yField as string })
-          break
-        case 'radar':
-          if (!fieldMapping.nameField || !((fieldMapping.valueFields as string[])?.length >= 3)) { setError('请选择对象名列和至少 3 个维度列'); return }
-          option = generateRadarOption(parsedData, { nameField: fieldMapping.nameField as string, valueFields: fieldMapping.valueFields as string[] })
-          break
-        case 'funnel':
-          if (!fieldMapping.stageField || !fieldMapping.valueField) { setError('请选择阶段列和数值列'); return }
-          option = generateFunnelOption(parsedData, { stageField: fieldMapping.stageField as string, valueField: fieldMapping.valueField as string })
-          break
-      }
-
-      if (option) setChartOption(option)
-    } catch (err) {
-      setError(`图表生成失败：${(err as Error).message}`)
+    const result = buildChartOption(parsedData, chartType, fieldMapping)
+    if (result.ok) {
+      setError('')
+      setChartOption(result.option)
+    } else {
+      setError(result.error)
     }
   }
 

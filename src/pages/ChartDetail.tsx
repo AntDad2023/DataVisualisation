@@ -1,5 +1,21 @@
 import { useParams, Link, useNavigate } from 'react-router-dom'
-import { chartsData } from '../data/chartsData'
+import { chartsData, type ChartMeta } from '../data/chartsData'
+import { exampleToParsedData } from '../utils/exampleToParsedData'
+
+/**
+ * 点击"带入生成器"：把示例数据 + 字段映射写入 sessionStorage，
+ * 供 Generator 挂载时读取并自动生成图表。
+ */
+function handleOpenInGenerator(chart: ChartMeta, navigate: (path: string) => void) {
+  const parsedData = exampleToParsedData(chart.exampleData)
+  const payload = {
+    chartType: chart.id,
+    parsedData,
+    defaultMapping: chart.defaultMapping ?? {},
+  }
+  sessionStorage.setItem('generator:autofill', JSON.stringify(payload))
+  navigate(`/generator?chart=${chart.id}`)
+}
 
 function ChartDetail() {
   const { id } = useParams()
@@ -118,7 +134,7 @@ function ChartDetail() {
             用上面的示例数据，在生成器中生成一个{chart.name}
           </p>
           <button
-            onClick={() => navigate(`/generator?chart=${chart.id}`)}
+            onClick={() => handleOpenInGenerator(chart, navigate)}
             className="px-6 py-2.5 bg-blue-600 text-white rounded-lg font-medium hover:bg-blue-700 transition-colors"
           >
             带入生成器

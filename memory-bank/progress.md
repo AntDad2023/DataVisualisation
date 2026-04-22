@@ -20,6 +20,14 @@
   - [x] 图表预览区加"下载 PNG"按钮（getDataURL + 触发下载）
   - [x] Vite manualChunks：echarts / react-vendor / app 三分包
   - [x] 单元测试扩展到全部 11 种图表（共 **13 文件 / 75 用例**）
+- [x] 批次 7：修复"带入生成器"只传图表类型、不传数据的 bug
+  - [x] ChartMeta 接口加 `defaultMapping` 字段，为 11 条 generatorSupported: true 的记录写死对应字段映射
+  - [x] 抽 `buildChartOption` 为纯函数（`src/utils/chartOptionBuilder.ts`），组件瘦身
+  - [x] 抽 `exampleToParsedData` 为工具（`src/utils/exampleToParsedData.ts`），供详情页与测试共用
+  - [x] ChartDetail 点击按钮时把 `{chartType, parsedData, defaultMapping}` 写入 sessionStorage
+  - [x] Generator 挂载时读 sessionStorage → 填充数据 + 字段映射 → 立即生成图表 → 清理 storage
+  - [x] 补测：新增 `chartOptionBuilder.test.ts`（18 条，含 11 条端到端断言）+ `exampleToParsedData.test.ts`（5 条）
+  - [x] 端到端自动化验证：Puppeteer 模拟点击"带入生成器"→ Generator 自动渲染 canvas，流程打通
 
 ## 线上地址
 
@@ -72,3 +80,6 @@ https://antdad2023.github.io/DataVisualisation/
 | 2026-04-22 | `npm run build` 生产构建（批次 5） | ✅ 通过 |
 | 2026-04-22 | `npm run test:run` 单元测试（批次 6 扩展后） | ✅ 13 文件 / 75 用例全绿 |
 | 2026-04-22 | `npm run build` 生产构建（批次 6 分包后） | ✅ 通过，chunk 警告消除 |
+| 2026-04-22 | `npm run test:run` 单元测试（批次 7 修复后） | ✅ 15 文件 / 98 用例全绿 |
+| 2026-04-22 | `npm run build` 生产构建（批次 7 后） | ✅ 通过 |
+| 2026-04-22 | Puppeteer 端到端：`/charts/heatmap` → 带入生成器 → 自动渲染 canvas + 字段预选（星期/时段/客流量） | ✅ 通过 |

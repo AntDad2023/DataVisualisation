@@ -16,8 +16,11 @@ export interface ChartMeta {
     columns: string[]
     rows: (string | number)[][]
   }
-  // 生成器相关（如果在 MVP 8 种里）
+  // 生成器相关
   generatorSupported: boolean
+  // 从图表详情页"带入生成器"时预填的字段映射（仅当 generatorSupported=true 时有意义）
+  // 键名需与 Generator.tsx 中对应 chartType 的 fieldMapping 保持一致
+  defaultMapping?: Record<string, string | string[]>
 }
 
 // 所有分类列表（用于筛选按钮）
@@ -54,6 +57,7 @@ export const chartsData: ChartMeta[] = [
       ],
     },
     generatorSupported: true,
+    defaultMapping: { xField: '城市', yField: '人口(万)' },
   },
 
   // ===== 2. 堆叠柱状图 =====
@@ -92,6 +96,7 @@ export const chartsData: ChartMeta[] = [
       ],
     },
     generatorSupported: true,
+    defaultMapping: { xField: '季度', seriesField: '产品', yField: '销售额(万)' },
   },
 
   // ===== 3. 折线图 =====
@@ -130,6 +135,7 @@ export const chartsData: ChartMeta[] = [
       ],
     },
     generatorSupported: true,
+    defaultMapping: { xField: '月份', yFields: ['销售额(万)'] },
   },
 
   // ===== 4. 散点图 =====
@@ -166,6 +172,7 @@ export const chartsData: ChartMeta[] = [
       ],
     },
     generatorSupported: true,
+    defaultMapping: { xField: '身高(cm)', yField: '体重(kg)' },
   },
 
   // ===== 5. 饼图 =====
@@ -197,6 +204,7 @@ export const chartsData: ChartMeta[] = [
       ],
     },
     generatorSupported: true,
+    defaultMapping: { categoryField: '浏览器', valueField: '市场份额(%)' },
   },
 
   // ===== 6. 直方图 =====
@@ -225,6 +233,7 @@ export const chartsData: ChartMeta[] = [
       ],
     },
     generatorSupported: true,
+    defaultMapping: { valueField: '考试成绩', binCount: '10' },
   },
 
   // ===== 7. 箱线图 =====
@@ -255,6 +264,7 @@ export const chartsData: ChartMeta[] = [
       ],
     },
     generatorSupported: true,
+    defaultMapping: { valueField: '成绩', groupField: '班级' },
   },
 
   // ===== 8. 热力图 =====
@@ -288,6 +298,7 @@ export const chartsData: ChartMeta[] = [
       ],
     },
     generatorSupported: true,
+    defaultMapping: { xField: '星期', yField: '时段', valueField: '客流量' },
   },
 
   // ===== 9. 面积图 =====
@@ -315,6 +326,7 @@ export const chartsData: ChartMeta[] = [
       ],
     },
     generatorSupported: true,
+    defaultMapping: { xField: '年份', yField: '收入(万)' },
   },
 
   // ===== 10. 堆叠面积图 =====
@@ -400,6 +412,7 @@ export const chartsData: ChartMeta[] = [
       ],
     },
     generatorSupported: true,
+    defaultMapping: { nameField: '角色', valueFields: ['攻击', '防御', '速度', '技巧', '体力'] },
   },
 
   // ===== 13. 气泡图 =====
@@ -458,6 +471,7 @@ export const chartsData: ChartMeta[] = [
       ],
     },
     generatorSupported: true,
+    defaultMapping: { stageField: '阶段', valueField: '人数' },
   },
 
   // ===== 15. 树图 =====
