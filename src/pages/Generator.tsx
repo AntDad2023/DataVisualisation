@@ -519,6 +519,114 @@ function Generator() {
           </>
         )
 
+      case 'stacked-area':
+        return (
+          <>
+            <label className="block mb-3">
+              <span className="text-sm font-medium text-gray-700 mb-1 block">分类列（X 轴，如时间）</span>
+              <select className={selectClass} value={fieldMapping.xField as string || ''} onChange={(e) => setFieldMapping({ ...fieldMapping, xField: e.target.value })}>
+                <option value="">请选择</option>
+                {allColumns.map((col) => {
+                  const used = isUsedByOtherDim('xField', col)
+                  return <option key={col} value={col} disabled={used}>{col}{used ? ' · 已用' : ''}</option>
+                })}
+              </select>
+            </label>
+            <label className="block mb-3">
+              <span className="text-sm font-medium text-gray-700 mb-1 block">分组列（系列，如渠道）</span>
+              <select className={selectClass} value={fieldMapping.seriesField as string || ''} onChange={(e) => setFieldMapping({ ...fieldMapping, seriesField: e.target.value })}>
+                <option value="">请选择</option>
+                {stringColumns.map((col) => {
+                  const used = isUsedByOtherDim('seriesField', col)
+                  return <option key={col} value={col} disabled={used}>{col}{used ? ' · 已用' : ''}</option>
+                })}
+              </select>
+            </label>
+            <label className="block mb-3">
+              <span className="text-sm font-medium text-gray-700 mb-1 block">数值列（Y 轴）</span>
+              <select className={selectClass} value={fieldMapping.yField as string || ''} onChange={(e) => setFieldMapping({ ...fieldMapping, yField: e.target.value })}>
+                <option value="">请选择</option>
+                {numericColumns.map((col) => {
+                  const used = isUsedByOtherDim('yField', col)
+                  return <option key={col} value={col} disabled={used}>{col}{used ? ' · 已用' : ''}</option>
+                })}
+              </select>
+            </label>
+          </>
+        )
+
+      case 'nightingale-rose':
+        return (
+          <>
+            <label className="block mb-3">
+              <span className="text-sm font-medium text-gray-700 mb-1 block">分类列</span>
+              <select className={selectClass} value={fieldMapping.categoryField as string || ''} onChange={(e) => setFieldMapping({ ...fieldMapping, categoryField: e.target.value })}>
+                <option value="">请选择</option>
+                {allColumns.map((col) => {
+                  const used = isUsedByOtherDim('categoryField', col)
+                  return <option key={col} value={col} disabled={used}>{col}{used ? ' · 已用' : ''}</option>
+                })}
+              </select>
+            </label>
+            <label className="block mb-3">
+              <span className="text-sm font-medium text-gray-700 mb-1 block">数值列</span>
+              <select className={selectClass} value={fieldMapping.valueField as string || ''} onChange={(e) => setFieldMapping({ ...fieldMapping, valueField: e.target.value })}>
+                <option value="">请选择</option>
+                {numericColumns.map((col) => {
+                  const used = isUsedByOtherDim('valueField', col)
+                  return <option key={col} value={col} disabled={used}>{col}{used ? ' · 已用' : ''}</option>
+                })}
+              </select>
+            </label>
+          </>
+        )
+
+      case 'bubble':
+        return (
+          <>
+            <label className="block mb-3">
+              <span className="text-sm font-medium text-gray-700 mb-1 block">X 数值列</span>
+              <select className={selectClass} value={fieldMapping.xField as string || ''} onChange={(e) => setFieldMapping({ ...fieldMapping, xField: e.target.value })}>
+                <option value="">请选择</option>
+                {numericColumns.map((col) => {
+                  const used = isUsedByOtherDim('xField', col)
+                  return <option key={col} value={col} disabled={used}>{col}{used ? ' · 已用' : ''}</option>
+                })}
+              </select>
+            </label>
+            <label className="block mb-3">
+              <span className="text-sm font-medium text-gray-700 mb-1 block">Y 数值列</span>
+              <select className={selectClass} value={fieldMapping.yField as string || ''} onChange={(e) => setFieldMapping({ ...fieldMapping, yField: e.target.value })}>
+                <option value="">请选择</option>
+                {numericColumns.map((col) => {
+                  const used = isUsedByOtherDim('yField', col)
+                  return <option key={col} value={col} disabled={used}>{col}{used ? ' · 已用' : ''}</option>
+                })}
+              </select>
+            </label>
+            <label className="block mb-3">
+              <span className="text-sm font-medium text-gray-700 mb-1 block">气泡大小列（第三维度）</span>
+              <select className={selectClass} value={fieldMapping.sizeField as string || ''} onChange={(e) => setFieldMapping({ ...fieldMapping, sizeField: e.target.value })}>
+                <option value="">请选择</option>
+                {numericColumns.map((col) => {
+                  const used = isUsedByOtherDim('sizeField', col)
+                  return <option key={col} value={col} disabled={used}>{col}{used ? ' · 已用' : ''}</option>
+                })}
+              </select>
+            </label>
+            <label className="block mb-3">
+              <span className="text-sm font-medium text-gray-700 mb-1 block">分类列（可选，用颜色区分）</span>
+              <select className={selectClass} value={fieldMapping.categoryField as string || ''} onChange={(e) => setFieldMapping({ ...fieldMapping, categoryField: e.target.value })}>
+                <option value="">不使用</option>
+                {stringColumns.map((col) => {
+                  const used = isUsedByOtherDim('categoryField', col)
+                  return <option key={col} value={col} disabled={used}>{col}{used ? ' · 已用' : ''}</option>
+                })}
+              </select>
+            </label>
+          </>
+        )
+
       default:
         return <p className="text-gray-400 text-sm">请选择图表类型</p>
     }

@@ -58,6 +58,21 @@
 - [x] `chartConfigs/{bar,histogram,boxplot}` 测试（共 16 用例，覆盖数值算法与降级分支）
 - [x] `npm run test:run` 全绿 + `npm run build` 通过
 
+### 批次 10a：扩展 3 种变体图表 ✅
+- [x] 新建三个纯函数：`stackedArea.ts` / `nightingaleRose.ts` / `bubble.ts`
+  - stacked-area: 数据处理复用 stackedBar 的宽表透视，series.type=line + areaStyle + stack
+  - nightingale-rose: 复用 pie 数据结构，series 加 `roseType:'radius'` + `radius:['20%','75%']`
+  - bubble: 每点是 [x,y,size] 三元组，`symbolSize` 函数按 size 值在数据集内的位置归一化到 12-60 px
+- [x] 接入生成器：
+  - `chartConfigs/index.ts` 导出
+  - `chartOptionBuilder.ts` 加 switch case 和字段必填校验
+  - default 分支补 `kind:'unsupported'` 保持类型完整性
+- [x] UI：`Generator.tsx` 加三个 case 的字段渲染，全部使用批次 9 的 `isUsedByOtherDim` 互斥模式
+- [x] 元数据：`chartsData.ts` 三个图表 `generatorSupported:true` + `defaultMapping`
+  - 字段名严格对齐 exampleData.columns（中间踩了两个拼写坑："降水量"→"降雨量"；bubble 默认字段写错成另一套广告数据 → 改为 GDP/人口/面积）
+- [x] 测试：三个 generator 单测（共 12 条） + 端到端 it.each 自动增加 3 条
+- [x] 验证：15 文件 / 105 用例 → 18 文件 / 120 用例，全绿 + build 通过
+
 ### 批次 9：字段互斥三层防御 ✅
 - [x] **B 层（chartOptionBuilder）**：
   - 新增 `BuildChartOptionErrorKind = 'incomplete' | 'conflict' | 'unsupported' | 'runtime'`

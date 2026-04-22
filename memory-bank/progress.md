@@ -33,6 +33,14 @@
   - [x] `line.yFields` / `radar.valueFields` 的 `<select multiple>` 改为 **checkbox 列表**（不再需要按 Ctrl+click，勾选状态一目了然）
   - [x] 保留"生成图表"按钮作为明确触发入口 + 字段不全时的错误诊断
   - [x] Puppeteer 端到端验证：autofill → checkbox 默认勾选 → 切 X 轴下拉 → canvas 像素指纹立刻变（`changedCanvas: true`）
+- [x] 批次 10a：生成器扩展 3 种变体图表（堆叠面积图 / 南丁格尔玫瑰图 / 气泡图）
+  - [x] 新增 `src/utils/chartConfigs/{stackedArea,nightingaleRose,bubble}.ts` 三个 generator 纯函数
+  - [x] 气泡图 `symbolSize` 按第三维度数值归一化到 12-60px（等值降级为 25px）
+  - [x] `chartConfigs/index.ts` 导出 + `SUPPORTED_CHART_TYPES` 加入 3 项
+  - [x] `chartOptionBuilder.ts` 加 3 个 case（含字段必填校验）+ default 分支补 `kind:'unsupported'`
+  - [x] `Generator.tsx` 加 3 个 case 的字段 UI（全部套用 `isUsedByOtherDim` 互斥模式）
+  - [x] `chartsData.ts` 三个图表 `generatorSupported` 翻转 `true` + 写 `defaultMapping`（字段名与 exampleData.columns 精确对齐）
+  - [x] 三个独立单测文件 + 端到端 it.each 自动扩展到 14 种图表（`chartOptionBuilder.test.ts` 从 25→28）
 - [x] 批次 9：字段互斥三层防御（修复用户反馈"X 和 Y 选同一列居然能画图"）
   - [x] B 层：`chartOptionBuilder` 增加 `kind: 'conflict'` 错误分类，switch 前统一做字段唯一性扫描，发现重复立刻拦住，`binCount` 等非字段配置项白名单豁免
   - [x] C 层：Generator 动态 useEffect 捕获 `kind:'conflict'` → setError + setChartOption(null)，让用户**立刻看到红字**而不是盯着旧图
@@ -44,13 +52,13 @@
 
 https://antdad2023.github.io/DataVisualisation/
 
-## 生成器当前支持的图表（11 种）
+## 生成器当前支持的图表（14 种）
 
 对比：条形图 / 堆叠柱状图 / 雷达图
-趋势：折线图 / 面积图
-占比：饼图
+趋势：折线图 / 面积图 / 堆叠面积图
+占比：饼图 / 南丁格尔玫瑰图
+关系：散点图 / 气泡图 / 热力图
 分布：直方图 / 箱线图
-关系：散点图 / 热力图
 流向：漏斗图
 
 ## 构建产物（代码分割后）
@@ -102,3 +110,6 @@ https://antdad2023.github.io/DataVisualisation/
 | 2026-04-22 | `npm run build` 批次 9 后 | ✅ 通过 |
 | 2026-04-22 | Puppeteer：autofill 折线图后 X 下拉 `销售额(万) · 已用作 Y 轴` disabled | ✅ 通过 |
 | 2026-04-22 | Puppeteer：反向互斥——X 选 `销售额(万)` 后 Y checkbox `· 已用作 X 轴` disabled | ✅ 通过 |
+| 2026-04-22 | `npm run test:run` 批次 10a 后 | ✅ 18 文件 / 120 用例全绿（+15 新用例） |
+| 2026-04-22 | `npm run build` 批次 10a 后 | ✅ 通过，app chunk 77→85KB |
+| 2026-04-22 | 端到端 `it.each` 自动覆盖：14 个 generatorSupported 图表全部用 exampleData + defaultMapping 成功生成 option | ✅ 通过 |

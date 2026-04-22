@@ -355,7 +355,8 @@ export const chartsData: ChartMeta[] = [
         ['3月', '搜索', 500], ['3月', '直接', 250], ['3月', '社交', 160],
       ],
     },
-    generatorSupported: false,
+    generatorSupported: true,
+    defaultMapping: { xField: '月份', seriesField: '渠道', yField: '访问量' },
   },
 
   // ===== 11. 饼图变体：南丁格尔玫瑰花图 =====
@@ -382,7 +383,8 @@ export const chartsData: ChartMeta[] = [
         ['春', 120], ['夏', 280], ['秋', 90], ['冬', 45],
       ],
     },
-    generatorSupported: false,
+    generatorSupported: true,
+    defaultMapping: { categoryField: '季节', valueField: '降雨量(mm)' },
   },
 
   // ===== 12. 雷达图 =====
@@ -443,7 +445,8 @@ export const chartsData: ChartMeta[] = [
         [3.1, 0.7, 38],
       ],
     },
-    generatorSupported: false,
+    generatorSupported: true,
+    defaultMapping: { xField: 'GDP(万亿)', yField: '人口(亿)', sizeField: '面积(万km²)' },
   },
 
   // ===== 14. 漏斗图 =====

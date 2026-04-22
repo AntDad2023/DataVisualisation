@@ -10,6 +10,9 @@ export { generateHeatmapOption, type HeatmapFieldMapping } from './heatmap'
 export { generateAreaOption, type AreaFieldMapping } from './area'
 export { generateRadarOption, type RadarFieldMapping } from './radar'
 export { generateFunnelOption, type FunnelFieldMapping } from './funnel'
+export { generateStackedAreaOption, type StackedAreaFieldMapping } from './stackedArea'
+export { generateNightingaleRoseOption, type NightingaleRoseFieldMapping } from './nightingaleRose'
+export { generateBubbleOption, type BubbleFieldMapping } from './bubble'
 
 // 生成器支持的图表类型 ID 列表
 export const SUPPORTED_CHART_TYPES = [
@@ -17,8 +20,11 @@ export const SUPPORTED_CHART_TYPES = [
   { id: 'stacked-bar', name: '堆叠柱状图' },
   { id: 'line', name: '折线图' },
   { id: 'area', name: '面积图' },
+  { id: 'stacked-area', name: '堆叠面积图' },
   { id: 'scatter', name: '散点图' },
+  { id: 'bubble', name: '气泡图' },
   { id: 'pie', name: '饼图' },
+  { id: 'nightingale-rose', name: '南丁格尔玫瑰图' },
   { id: 'histogram', name: '直方图' },
   { id: 'boxplot', name: '箱线图' },
   { id: 'heatmap', name: '热力图' },

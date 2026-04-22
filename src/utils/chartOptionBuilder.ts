@@ -11,6 +11,9 @@ import {
   generateAreaOption,
   generateRadarOption,
   generateFunnelOption,
+  generateStackedAreaOption,
+  generateNightingaleRoseOption,
+  generateBubbleOption,
 } from './chartConfigs'
 
 export type FieldMapping = Record<string, string | string[]>
@@ -147,8 +150,28 @@ export function buildChartOption(
         if (!s('stageField') || !s('valueField')) return { ok: false, error: '请选择阶段列和数值列' }
         return { ok: true, option: generateFunnelOption(data, { stageField: s('stageField'), valueField: s('valueField') }) }
 
+      case 'stacked-area':
+        if (!s('xField') || !s('seriesField') || !s('yField')) return { ok: false, error: '请选择分类列、分组列和数值列' }
+        return { ok: true, option: generateStackedAreaOption(data, { xField: s('xField'), seriesField: s('seriesField'), yField: s('yField') }) }
+
+      case 'nightingale-rose':
+        if (!s('categoryField') || !s('valueField')) return { ok: false, error: '请选择分类列和数值列' }
+        return { ok: true, option: generateNightingaleRoseOption(data, { categoryField: s('categoryField'), valueField: s('valueField') }) }
+
+      case 'bubble':
+        if (!s('xField') || !s('yField') || !s('sizeField')) return { ok: false, error: '请选择 X、Y 和气泡大小三个数值列' }
+        return {
+          ok: true,
+          option: generateBubbleOption(data, {
+            xField: s('xField'),
+            yField: s('yField'),
+            sizeField: s('sizeField'),
+            categoryField: s('categoryField') || undefined,
+          }),
+        }
+
       default:
-        return { ok: false, error: `不支持的图表类型：${chartType}` }
+        return { ok: false, error: `不支持的图表类型：${chartType}`, kind: 'unsupported' }
     }
   } catch (err) {
     return { ok: false, error: `图表生成失败：${(err as Error).message}` }
