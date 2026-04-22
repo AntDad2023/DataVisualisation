@@ -25,7 +25,7 @@ describe('generateChordOption', () => {
     const opt = generateChordOption(data, { sourceField: 'A', targetField: 'B', valueField: 'v' }) as {
       series: Array<{ links: Array<{ lineStyle: { curveness: number } }> }>
     }
-    expect(opt.series[0].links[0].lineStyle.curveness).toBe(0.3)
+    expect(opt.series[0].links[0].lineStyle.curveness).toBe(0.45)
   })
 
   it('nodes 从 source/target 去重为 3 个城市', () => {

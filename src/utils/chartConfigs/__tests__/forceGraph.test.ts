@@ -15,13 +15,15 @@ const data: ParsedData = {
 }
 
 describe('rowsToGraphData (edgeListHelper)', () => {
-  it('nodes 去重，degree 统计正确（张三出现 3 次）', () => {
+  it('nodes 去重；按关系强度之和算 symbolSize（张三 weight 最高）', () => {
     const { nodes } = rowsToGraphData(data, { sourceField: 'A', targetField: 'B', valueField: 'w' })
     const names = nodes.map((n) => n.name).sort()
     expect(names).toEqual(['张三', '李四', '王五', '赵六'].sort())
-    // 张三度数最高，symbolSize = 50（20 + 30*1）
+    // 张三涉及 3 条边，weight = 5+3+2 = 10（全局最大），symbolSize = 20 + 40*1 = 60 px
     const zhang = nodes.find((n) => n.name === '张三')
-    expect(zhang?.symbolSize).toBe(50)
+    expect(zhang?.symbolSize).toBe(60)
+    expect(zhang?.value).toBe(10)
+    expect(zhang?.degree).toBe(3)
   })
 
   it('links 保留原始顺序和 value', () => {
@@ -45,8 +47,8 @@ describe('generateForceGraphOption', () => {
       series: Array<{ links: Array<{ value: number; lineStyle: { width: number } }> }>
     }
     const links = opt.series[0].links
-    // maxValue=5, value=5 → width = 1 + 4 = 5 (最粗)
+    // maxValue=5, value=5 → width = 1 + 5*1 = 6 px（最粗）
     const maxLink = links.find((l) => l.value === 5)
-    expect(maxLink?.lineStyle.width).toBe(5)
+    expect(maxLink?.lineStyle.width).toBe(6)
   })
 })

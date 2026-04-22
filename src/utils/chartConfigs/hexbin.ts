@@ -97,11 +97,14 @@ export function generateHexbinOption(data: ParsedData, mapping: HexbinFieldMappi
       min: 0,
       max: maxCount,
       calculable: true,
-      inRange: { color: ['#e0f2fe', '#0369a1'] },
+      // 热力图风格：黄→橙→红的五阶渐变，频数越高颜色越"热"
+      // 对应定义"借鉴热力图，用颜色代表频数的高低"
+      inRange: { color: ['#ffffb2', '#fecc5c', '#fd8d3c', '#f03b20', '#bd0026'] },
       orient: 'horizontal' as const,
       left: 'center',
       bottom: 10,
       dimension: 2,
+      text: ['高', '低'],
     },
     series: [
       {

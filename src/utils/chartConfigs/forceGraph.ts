@@ -17,7 +17,17 @@ export function generateForceGraphOption(data: ParsedData, mapping: ForceGraphFi
   const maxValue = Math.max(1, ...links.map((l) => l.value))
 
   return {
-    tooltip: { trigger: 'item' as const },
+    tooltip: {
+      trigger: 'item' as const,
+      formatter: (p: { dataType: string; data: { name: string; value: number; degree: number } | { source: string; target: string; value: number } }) => {
+        if (p.dataType === 'edge') {
+          const d = p.data as { source: string; target: string; value: number }
+          return `${d.source} — ${d.target}<br/>关系强度：${d.value}`
+        }
+        const d = p.data as { name: string; value: number; degree: number }
+        return `${d.name}<br/>连接数：${d.degree}<br/>总关系强度：${d.value}`
+      },
+    },
     series: [
       {
         type: 'graph' as const,
@@ -27,13 +37,19 @@ export function generateForceGraphOption(data: ParsedData, mapping: ForceGraphFi
           source: l.source,
           target: l.target,
           value: l.value,
-          lineStyle: { width: 1 + (l.value / maxValue) * 4 },
+          lineStyle: { width: 1 + (l.value / maxValue) * 5 },
         })),
         roam: true,
-        label: { show: true, position: 'right' as const, fontSize: 12 },
-        force: { repulsion: 300, edgeLength: 120, gravity: 0.1 },
-        emphasis: { focus: 'adjacency' as const, lineStyle: { width: 6 } },
-        lineStyle: { color: 'source' as const, curveness: 0 },
+        draggable: true,
+        label: { show: true, position: 'right' as const, fontSize: 12, fontWeight: 'bold' as const },
+        force: { repulsion: 500, edgeLength: [60, 140], gravity: 0.15, layoutAnimation: true },
+        emphasis: {
+          focus: 'adjacency' as const,
+          label: { fontSize: 14 },
+          lineStyle: { width: 8 },
+        },
+        lineStyle: { color: 'source' as const, curveness: 0, opacity: 0.8 },
+        itemStyle: { borderColor: '#fff', borderWidth: 1.5, shadowBlur: 8, shadowColor: 'rgba(0,0,0,0.15)' },
       },
     ],
   }

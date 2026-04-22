@@ -33,6 +33,13 @@
   - [x] `line.yFields` / `radar.valueFields` 的 `<select multiple>` 改为 **checkbox 列表**（不再需要按 Ctrl+click，勾选状态一目了然）
   - [x] 保留"生成图表"按钮作为明确触发入口 + 字段不全时的错误诊断
   - [x] Puppeteer 端到端验证：autofill → checkbox 默认勾选 → 切 X 轴下拉 → canvas 像素指纹立刻变（`changedCanvas: true`）
+- [x] 批次 12：3 张难图对齐权威定义（用户提供定义图反馈）
+  - [x] **力导图**：节点大小从"按度数"改为"按关系强度之和"（20~60 px）——符合定义"节点大小可代表变量"；tooltip 分别格式化节点/边；repulsion 500 + edgeLength[60,140] + draggable + 白描边阴影
+  - [x] **弦图**：曲率 0.3→0.45、线宽 1-6→2-10px、hover 线宽放到 12、加节点阴影——落实定义"交互效果必须有"；tooltip "源⇌目:数值"
+  - [x] **六边形分箱图**：配色从冷调蓝改为**热力图五阶黄→红**——落实定义"借鉴热力图"；示例数据从 10 点扩到 **72 点带 3 密集热区**，让"密度分箱"效果真正可见
+  - [x] `edgeListHelper.GraphNode` 新增 `value`（weight sum）+ `degree` 字段供 tooltip
+  - [x] 跟进 3 条断言：chord curveness / forceGraph symbolSize 上限 / 线宽公式
+  - [x] 验证：26 文件 / 165 用例全绿 + build（app 99→100KB）
 - [x] 批次 10c：生成器扩展最后 3 张"难图"（力导图 / 弦图 / 六边形分箱图）—— **全部 21 种图表都已支持生成器**
   - [x] 新增 `edgeListHelper.ts`：边列表 → `{nodes, links}` + 按 degree 算 `symbolSize`（force-graph/chord 共用）
   - [x] 新增 `forceGraph.ts`：`series.type='graph' + layout:'force'`，线宽按关系强度缩放，roam 支持拖拽

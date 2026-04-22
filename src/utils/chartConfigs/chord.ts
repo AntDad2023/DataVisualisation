@@ -18,7 +18,17 @@ export function generateChordOption(data: ParsedData, mapping: ChordFieldMapping
   const maxValue = Math.max(1, ...links.map((l) => l.value))
 
   return {
-    tooltip: { trigger: 'item' as const },
+    tooltip: {
+      trigger: 'item' as const,
+      formatter: (p: { dataType: string; data: { name: string; value: number; degree: number } | { source: string; target: string; value: number } }) => {
+        if (p.dataType === 'edge') {
+          const d = p.data as { source: string; target: string; value: number }
+          return `${d.source} ⇌ ${d.target}<br/>数值：${d.value}`
+        }
+        const d = p.data as { name: string; value: number; degree: number }
+        return `${d.name}<br/>关联数：${d.degree}<br/>总量：${d.value}`
+      },
+    },
     series: [
       {
         type: 'graph' as const,
@@ -30,17 +40,20 @@ export function generateChordOption(data: ParsedData, mapping: ChordFieldMapping
           target: l.target,
           value: l.value,
           lineStyle: {
-            width: 1 + (l.value / maxValue) * 5,
-            curveness: 0.3,
-            opacity: 0.7,
+            width: 2 + (l.value / maxValue) * 8,  // 2~10 px，弦宽度差异更明显
+            curveness: 0.45,                       // 曲率大一些，更像弦
+            opacity: 0.6,
           },
         })),
-        label: { show: true, position: 'right' as const, fontSize: 12 },
+        label: { show: true, position: 'right' as const, fontSize: 13, fontWeight: 'bold' as const },
         emphasis: {
           focus: 'adjacency' as const,
-          lineStyle: { width: 8, opacity: 1 },
+          label: { fontSize: 15 },
+          lineStyle: { width: 12, opacity: 1 },
+          itemStyle: { shadowBlur: 12, shadowColor: 'rgba(0,0,0,0.3)' },
         },
         lineStyle: { color: 'source' as const },
+        itemStyle: { borderColor: '#fff', borderWidth: 2 },
         roam: false,
       },
     ],
