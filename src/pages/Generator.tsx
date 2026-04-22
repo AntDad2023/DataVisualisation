@@ -53,6 +53,24 @@ function Generator() {
   const fileInputRef = useRef<HTMLInputElement>(null)
   const chartRef = useRef<ReactEChartsCore>(null)
 
+  // 力导图：拖拽节点松手后让它"弹回"
+  // ECharts graph+force 默认行为：用户拖拽节点时节点 fixed=true 被设置，
+  // 松手后 fixed 保留为 true，节点钉死不动。要实现"松手后在力作用下回归平衡"，
+  // 必须在 mouseup 时主动把 fixed 重置为 false 并触发 setOption 重启力模拟。
+  const handleForceGraphMouseUp = useCallback((params: { dataType?: string; dataIndex?: number }) => {
+    if (chartType !== 'force-graph') return
+    if (params.dataType !== 'node' || params.dataIndex === undefined) return
+    const inst = chartRef.current?.getEchartsInstance()
+    if (!inst) return
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    const option = inst.getOption() as any
+    const nodes = option?.series?.[0]?.data
+    if (!Array.isArray(nodes) || !nodes[params.dataIndex]) return
+    // 只重置 fixed，保留 x/y（节点就从被拖到的位置开始被力拉回平衡）
+    nodes[params.dataIndex].fixed = false
+    inst.setOption({ series: [{ data: nodes }] })
+  }, [chartType])
+
   // 下载当前图表为 PNG
   const handleDownloadPng = useCallback(() => {
     const instance = chartRef.current?.getEchartsInstance()
@@ -1005,6 +1023,7 @@ function Generator() {
                 option={chartOption}
                 style={{ height: '500px', width: '100%' }}
                 notMerge={true}
+                onEvents={{ mouseup: handleForceGraphMouseUp }}
               />
             )
           ) : (
