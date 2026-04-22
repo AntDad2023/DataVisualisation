@@ -623,7 +623,8 @@ export const chartsData: ChartMeta[] = [
         ['张三', '赵六', 2], ['王五', '赵六', 1],
       ],
     },
-    generatorSupported: false,
+    generatorSupported: true,
+    defaultMapping: { sourceField: '人物A', targetField: '人物B', valueField: '关系强度' },
   },
 
   // ===== 20. 弦图 =====
@@ -651,7 +652,8 @@ export const chartsData: ChartMeta[] = [
         ['上海', '广州', 20], ['上海', '成都', 15], ['广州', '成都', 10],
       ],
     },
-    generatorSupported: false,
+    generatorSupported: true,
+    defaultMapping: { sourceField: '城市A', targetField: '城市B', valueField: '航班数' },
   },
 
   // ===== 21. 六边形分箱图 =====
@@ -679,6 +681,7 @@ export const chartsData: ChartMeta[] = [
         [116.3, 39.8], [121.4, 31.3], [113.2, 23.2], [114.0, 22.6], [104.0, 30.7],
       ],
     },
-    generatorSupported: false,
+    generatorSupported: true,
+    defaultMapping: { xField: '经度', yField: '纬度' },
   },
 ]

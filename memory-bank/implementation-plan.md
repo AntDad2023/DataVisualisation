@@ -58,6 +58,27 @@
 - [x] `chartConfigs/{bar,histogram,boxplot}` 测试（共 16 用例，覆盖数值算法与降级分支）
 - [x] `npm run test:run` 全绿 + `npm run build` 通过
 
+### 批次 10c：最后 3 张难图（力导图 / 弦图 / 六边形分箱图）✅
+- [x] 目标：把 21 张图表**全部**接入生成器，无遗漏
+- [x] `edgeListHelper.ts`：边列表 → `{nodes, links}`，nodes 按 degree 归一化到 20~50px symbolSize（force/chord 共用）
+- [x] `forceGraph.ts`：`graph + layout:'force'`，重构参数用默认值（repulsion=300, edgeLength=120），roam 允许用户拖拽
+- [x] `chord.ts`：ECharts 无原生 chord 类型 → 用 `graph + layout:'circular' + curveness:0.3` 近似；用户视觉上看起来跟弦图 80% 一致，简单有效
+- [x] `hexbin.ts`：ECharts 也无原生 hexbin → 自己实现：
+  - 分箱算法 `hexbin(points, binSize)`：pointy-top 六边形网格 + odd-row 偏移 + round-to-nearest-center 分配
+  - 渲染：scatter + `symbol:'path://六边形SVG'` + `visualMap` 颜色按密度映射
+  - 可选 `binSize` 参数，缺省按 max(x_range, y_range) / 15 自动算
+- [x] 接入：
+  - `chartConfigs/index.ts` 3 个导出 + SUPPORTED_CHART_TYPES 加 3 项
+  - `chartOptionBuilder.ts` 3 个 case + `binSize` 进入 `NON_FIELD_KEYS` 白名单（和 `binCount` 同等级，不参与字段冲突校验）
+  - `Generator.tsx` 注册 `GraphChart` + 3 个 case UI（force/chord 合并分支；hexbin 带 `<input type=number placeholder="自动">`）
+  - `chartsData.ts` 3 图 `generatorSupported:true` + `defaultMapping`
+- [x] 单测 15 条：
+  - `forceGraph.test.ts` 4 条（degree 统计、symbolSize 归一化、线宽缩放）
+  - `chord.test.ts` 3 条（layout=circular、curveness、nodes 去重）
+  - `hexbin.test.ts` 8 条（分箱算法 4 条 + option 结构 4 条，含"binSize=100 把所有点归入一个 bin"验证）
+- [x] 端到端 `it.each` 从 18 → **21 自动扩展**，全部成图
+- [x] 验证：23 文件/147 → 26 文件/**165 用例全绿** + build 通过
+
 ### 批次 11：URL 直达生成器 autofill ✅
 - [x] 背景：用户分享 `/generator?chart=treemap` 链接时，之前只设了 chartType 没加数据，用户看到空白生成器很困惑
 - [x] 新增 `src/utils/autofillResolver.ts` 纯函数：

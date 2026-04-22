@@ -6,6 +6,7 @@ import {
   BarChart, LineChart, ScatterChart, PieChart,
   HeatmapChart, BoxplotChart, RadarChart, FunnelChart,
   TreemapChart, SunburstChart, SankeyChart, ParallelChart,
+  GraphChart,
 } from 'echarts/charts'
 import {
   TitleComponent, TooltipComponent, GridComponent,
@@ -24,6 +25,7 @@ echarts.use([
   BarChart, LineChart, ScatterChart, PieChart,
   HeatmapChart, BoxplotChart, RadarChart, FunnelChart,
   TreemapChart, SunburstChart, SankeyChart, ParallelChart,
+  GraphChart,
   TitleComponent, TooltipComponent, GridComponent,
   LegendComponent, VisualMapComponent, ParallelComponent,
   CanvasRenderer,
@@ -694,6 +696,81 @@ function Generator() {
                   return <option key={col} value={col} disabled={used}>{col}{used ? ' · 已用' : ''}</option>
                 })}
               </select>
+            </label>
+          </>
+        )
+
+      case 'force-graph':
+      case 'chord':
+        return (
+          <>
+            <label className="block mb-3">
+              <span className="text-sm font-medium text-gray-700 mb-1 block">来源列（节点 A）</span>
+              <select className={selectClass} value={fieldMapping.sourceField as string || ''} onChange={(e) => setFieldMapping({ ...fieldMapping, sourceField: e.target.value })}>
+                <option value="">请选择</option>
+                {stringColumns.map((col) => {
+                  const used = isUsedByOtherDim('sourceField', col)
+                  return <option key={col} value={col} disabled={used}>{col}{used ? ' · 已用' : ''}</option>
+                })}
+              </select>
+            </label>
+            <label className="block mb-3">
+              <span className="text-sm font-medium text-gray-700 mb-1 block">目标列（节点 B）</span>
+              <select className={selectClass} value={fieldMapping.targetField as string || ''} onChange={(e) => setFieldMapping({ ...fieldMapping, targetField: e.target.value })}>
+                <option value="">请选择</option>
+                {stringColumns.map((col) => {
+                  const used = isUsedByOtherDim('targetField', col)
+                  return <option key={col} value={col} disabled={used}>{col}{used ? ' · 已用' : ''}</option>
+                })}
+              </select>
+            </label>
+            <label className="block mb-3">
+              <span className="text-sm font-medium text-gray-700 mb-1 block">关系强度数值列</span>
+              <select className={selectClass} value={fieldMapping.valueField as string || ''} onChange={(e) => setFieldMapping({ ...fieldMapping, valueField: e.target.value })}>
+                <option value="">请选择</option>
+                {numericColumns.map((col) => {
+                  const used = isUsedByOtherDim('valueField', col)
+                  return <option key={col} value={col} disabled={used}>{col}{used ? ' · 已用' : ''}</option>
+                })}
+              </select>
+            </label>
+          </>
+        )
+
+      case 'hexbin':
+        return (
+          <>
+            <label className="block mb-3">
+              <span className="text-sm font-medium text-gray-700 mb-1 block">X 轴数值列</span>
+              <select className={selectClass} value={fieldMapping.xField as string || ''} onChange={(e) => setFieldMapping({ ...fieldMapping, xField: e.target.value })}>
+                <option value="">请选择</option>
+                {numericColumns.map((col) => {
+                  const used = isUsedByOtherDim('xField', col)
+                  return <option key={col} value={col} disabled={used}>{col}{used ? ' · 已用' : ''}</option>
+                })}
+              </select>
+            </label>
+            <label className="block mb-3">
+              <span className="text-sm font-medium text-gray-700 mb-1 block">Y 轴数值列</span>
+              <select className={selectClass} value={fieldMapping.yField as string || ''} onChange={(e) => setFieldMapping({ ...fieldMapping, yField: e.target.value })}>
+                <option value="">请选择</option>
+                {numericColumns.map((col) => {
+                  const used = isUsedByOtherDim('yField', col)
+                  return <option key={col} value={col} disabled={used}>{col}{used ? ' · 已用' : ''}</option>
+                })}
+              </select>
+            </label>
+            <label className="block mb-3">
+              <span className="text-sm font-medium text-gray-700 mb-1 block">六边形边长（留空自动，数值越大格子越粗）</span>
+              <input
+                type="number"
+                step="0.1"
+                min="0"
+                placeholder="自动"
+                className={selectClass}
+                value={(fieldMapping.binSize as string) ?? ''}
+                onChange={(e) => setFieldMapping({ ...fieldMapping, binSize: e.target.value })}
+              />
             </label>
           </>
         )

@@ -33,6 +33,17 @@
   - [x] `line.yFields` / `radar.valueFields` 的 `<select multiple>` 改为 **checkbox 列表**（不再需要按 Ctrl+click，勾选状态一目了然）
   - [x] 保留"生成图表"按钮作为明确触发入口 + 字段不全时的错误诊断
   - [x] Puppeteer 端到端验证：autofill → checkbox 默认勾选 → 切 X 轴下拉 → canvas 像素指纹立刻变（`changedCanvas: true`）
+- [x] 批次 10c：生成器扩展最后 3 张"难图"（力导图 / 弦图 / 六边形分箱图）—— **全部 21 种图表都已支持生成器**
+  - [x] 新增 `edgeListHelper.ts`：边列表 → `{nodes, links}` + 按 degree 算 `symbolSize`（force-graph/chord 共用）
+  - [x] 新增 `forceGraph.ts`：`series.type='graph' + layout:'force'`，线宽按关系强度缩放，roam 支持拖拽
+  - [x] 新增 `chord.ts`：ECharts 无原生 chord，用 `graph + layout:'circular' + curveness:0.3` 近似弦图
+  - [x] 新增 `hexbin.ts` + 独立 `hexbin()` 分箱算法：pointy-top 六边形 + odd-row 偏移 + round-nearest-center，O(n)；渲染用 `scatter + symbol:'path://SVG'` + `visualMap` 颜色映射密度
+  - [x] `Generator.tsx` 注册 `GraphChart` + 3 个 case UI（force/chord 合并分支共用字段；hexbin 支持可选 `binSize` 数字输入）
+  - [x] `chartOptionBuilder.ts` 加 3 个 case + `binSize` 进入字段冲突检测白名单（跟 `binCount` 同等级）
+  - [x] `chartsData.ts` 3 图 `generatorSupported:true` + `defaultMapping`
+  - [x] 单测 15 条（forceGraph 4 / chord 3 / hexbin 8，其中 hexbin 重点覆盖分箱算法边界）
+  - [x] 端到端 `it.each` 自动扩展到 **21 个图表**（chartOptionBuilder.test.ts 从 32→35）
+  - [x] 验证：23 文件 / 147 用例 → **26 文件 / 165 用例全绿**
 - [x] 批次 11：生成器支持 URL 直达 autofill（分享链接即用即得）
   - [x] 新增 `autofillResolver.ts` 纯函数：决定用哪条 autofill 路径（sessionStorage 优先，URL `?chart=xxx` 收底）
   - [x] URL 直达时从 `chartsData` 里查图表 `exampleData + defaultMapping`，构造与"带入生成器"按钮等价的 payload
@@ -68,13 +79,13 @@
 
 https://antdad2023.github.io/DataVisualisation/
 
-## 生成器当前支持的图表（18 种）
+## 生成器当前支持的图表（21 种，全覆盖）
 
 对比：条形图 / 堆叠柱状图 / 雷达图 / 平行坐标图
 趋势：折线图 / 面积图 / 堆叠面积图
 占比：饼图 / 南丁格尔玫瑰图
-关系：散点图 / 气泡图 / 热力图
-分布：直方图 / 箱线图
+关系：散点图 / 气泡图 / 热力图 / 力导图 / 弦图
+分布：直方图 / 箱线图 / 六边形分箱图
 流向：漏斗图 / 桑基图
 层级：树图 / 旭日图
 
@@ -135,3 +146,6 @@ https://antdad2023.github.io/DataVisualisation/
 | 2026-04-22 | 端到端 `it.each` 自动扩展到 18 个 generatorSupported 图表全部成图 | ✅ 通过 |
 | 2026-04-22 | `npm run test:run` 批次 11 后 | ✅ 23 文件 / 147 用例全绿（+9 autofillResolver 断言） |
 | 2026-04-22 | `npm run build` 批次 11 后 | ✅ 通过（app chunk +0.3KB） |
+| 2026-04-22 | `npm run test:run` 批次 10c 后 | ✅ 26 文件 / 165 用例全绿（+18 新用例） |
+| 2026-04-22 | `npm run build` 批次 10c 后 | ✅ 通过；app 93→99KB，echarts 711→742KB（新 GraphChart） |
+| 2026-04-22 | 端到端 `it.each` 自动扩展到 **21 个 generatorSupported 图表全覆盖** | ✅ 通过 |

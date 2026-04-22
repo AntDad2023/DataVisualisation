@@ -18,6 +18,9 @@ import {
   generateSunburstOption,
   generateSankeyOption,
   generateParallelOption,
+  generateForceGraphOption,
+  generateChordOption,
+  generateHexbinOption,
 } from './chartConfigs'
 
 export type FieldMapping = Record<string, string | string[]>
@@ -36,7 +39,7 @@ export type BuildChartOptionResult =
   | { ok: false; error: string; kind?: BuildChartOptionErrorKind }
 
 /** 非字段名的 mapping 键（配置项），不参与字段唯一性校验 */
-const NON_FIELD_KEYS = new Set<string>(['binCount'])
+const NON_FIELD_KEYS = new Set<string>(['binCount', 'binSize'])
 
 /**
  * 检查 mapping 里是否有列名被同时赋给多个维度。
@@ -214,6 +217,39 @@ export function buildChartOption(
           option: generateParallelOption(data, {
             dimensions: arr('dimensions'),
             nameField: s('nameField') || undefined,
+          }),
+        }
+
+      case 'force-graph':
+        if (!s('sourceField') || !s('targetField') || !s('valueField')) return { ok: false, error: '请选择来源列、目标列和关系强度列' }
+        return {
+          ok: true,
+          option: generateForceGraphOption(data, {
+            sourceField: s('sourceField'),
+            targetField: s('targetField'),
+            valueField: s('valueField'),
+          }),
+        }
+
+      case 'chord':
+        if (!s('sourceField') || !s('targetField') || !s('valueField')) return { ok: false, error: '请选择来源列、目标列和数值列' }
+        return {
+          ok: true,
+          option: generateChordOption(data, {
+            sourceField: s('sourceField'),
+            targetField: s('targetField'),
+            valueField: s('valueField'),
+          }),
+        }
+
+      case 'hexbin':
+        if (!s('xField') || !s('yField')) return { ok: false, error: '请选择 X 和 Y 两个数值列' }
+        return {
+          ok: true,
+          option: generateHexbinOption(data, {
+            xField: s('xField'),
+            yField: s('yField'),
+            binSize: Number(s('binSize')) || undefined,
           }),
         }
 

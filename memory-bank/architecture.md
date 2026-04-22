@@ -144,7 +144,13 @@ interface ChartMeta {
 16. **层级数据平铺 → 嵌套转换**：`hierarchyHelper.rowsToHierarchy` 把 `[父,子,值]` 行扁平数据转为 ECharts `{name, value, children}` 嵌套结构。父节点 value 自动算作子节点之和（方便 tooltip）。`treemap` 和 `sunburst` 共用此 helper，只差 `series.type` 和样式，实现成本低
 17. **边列表 → `{nodes, links}` 转换**：`sankey.ts` 里把 `[[source,target,value]...]` 行扁平数据转为 ECharts 桑基图需要的双数组：`links` 保持原始顺序、`nodes` 从 source/target 两列 Set 去重而来。复杂度 O(n)，无需单独的 nodeField
 18. **平行坐标图的二态 data 格式**：无 nameField 时 `series.data` 是 `number[][]`（每项是多维数值数组）；有 nameField 时是 `{name, value:number[]}[]`。这是 ECharts 的约定，同一 generator 内部根据 mapping 自动切换输出形态
-19. **Autofill 两条路径 + 纯函数解耦**：Generator 挂载时自动填数据有两条来源：
+19bis. **边列表类图表的共享转换**：`edgeListHelper.rowsToGraphData` 跟 sankey 的边列表处理类似但产出不同：保留 `{nodes, links}`，且节点带 `symbolSize` 按 degree 归一化到 20~50px（度数越高节点越大）。`force-graph` 和 `chord` 共用这一 helper，只在 option 里切 `layout`（force vs circular）和 lineStyle（直线 vs curveness=0.3）
+20. **ECharts 无原生图表类型的妥协策略**：
+    - **chord（弦图）**：ECharts 4+ 移除了独立 chord 类型。用 `graph + layout:'circular' + 贝塞尔曲率` 近似，视觉 80% 一致
+    - **hexbin（六边形分箱图）**：ECharts 完全没有。自己实现分箱算法（pointy-top 六边形 + odd-row 偏移 + round-to-nearest-center），渲染用 `scatter + symbol:'path://SVG'` + `visualMap` 映射颜色。symbolSize 固定像素（30px），用户通过 `binSize` 参数控制网格粗细
+    - 原则：**不引入新依赖，用已有原语拼装近似效果**。对数据可视化教学用途来说，近似版足够传达图表概念
+21. **非字段配置项白名单 `NON_FIELD_KEYS`**：`binCount`（直方图）和 `binSize`（hexbin）这类数字配置参数虽然也放在 `fieldMapping` 里（同一份 state），但不是"列名"。字段冲突检测 `findDuplicateField` 对这些 key 白名单豁免，避免误报"列 X 重复占用"
+22. **Autofill 两条路径 + 纯函数解耦**：Generator 挂载时自动填数据有两条来源：
     - **sessionStorage**（详情页"带入生成器"按钮写入）—— 优先级最高
     - **URL 参数 `?chart=xxx`**（用户直接访问/分享链接时）—— 用 chartsData 的 exampleData+defaultMapping 构造等价 payload
     
@@ -159,7 +165,7 @@ interface ChartMeta {
 - **运行命令**：`npm run test:run`（一次性执行）/ `npm test`（watch 模式）
 - **命名约定**：测试文件与被测文件同级的 `__tests__/` 目录下，以 `*.test.ts` 命名
 - **覆盖重点**：边界条件（80% 阈值、空输入、列数不一致、非数值单元格），以及容易出 bug 的数值算法（直方图分箱、箱线图五数概括、雷达图 max 计算）
-- **当前规模**：23 文件 / 147 用例，覆盖全部 18 种生成器图表、option builder 分发与字段冲突检测、示例数据转换、层级/边列表结构转换、autofill 两路径决策、所有 utils 纯函数
+- **当前规模**：26 文件 / 165 用例，覆盖**全部 21 种生成器图表**、option builder 分发与字段冲突检测、示例数据转换、层级/边列表结构转换、hexbin 分箱算法、autofill 两路径决策、所有 utils 纯函数
 
 ## 文档产出补充
 

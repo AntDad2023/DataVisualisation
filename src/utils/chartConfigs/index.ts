@@ -17,6 +17,9 @@ export { generateTreemapOption, type TreemapFieldMapping } from './treemap'
 export { generateSunburstOption, type SunburstFieldMapping } from './sunburst'
 export { generateSankeyOption, type SankeyFieldMapping } from './sankey'
 export { generateParallelOption, type ParallelFieldMapping } from './parallel'
+export { generateForceGraphOption, type ForceGraphFieldMapping } from './forceGraph'
+export { generateChordOption, type ChordFieldMapping } from './chord'
+export { generateHexbinOption, type HexbinFieldMapping } from './hexbin'
 
 // 生成器支持的图表类型 ID 列表
 export const SUPPORTED_CHART_TYPES = [
@@ -38,4 +41,7 @@ export const SUPPORTED_CHART_TYPES = [
   { id: 'sunburst', name: '旭日图' },
   { id: 'sankey', name: '桑基图' },
   { id: 'parallel', name: '平行坐标图' },
+  { id: 'force-graph', name: '力导图' },
+  { id: 'chord', name: '弦图' },
+  { id: 'hexbin', name: '六边形分箱图' },
 ] as const
