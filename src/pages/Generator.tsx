@@ -19,6 +19,14 @@ import { parsePastedText } from '../utils/pasteParser'
 import { SUPPORTED_CHART_TYPES } from '../utils/chartConfigs'
 import { buildChartOption } from '../utils/chartOptionBuilder'
 import { resolveAutofillPayload } from '../utils/autofillResolver'
+import ChordChart from '../components/ChordChart'
+import type { ChordRenderData } from '../utils/chartConfigs/chord'
+
+// chord 图表用 __renderer 标记走自研 SVG 组件，不走 ECharts
+type ChordOption = { __renderer: 'chord-svg'; chordData: ChordRenderData }
+function isChordOption(opt: object | null): opt is ChordOption {
+  return !!opt && (opt as { __renderer?: string }).__renderer === 'chord-svg'
+}
 
 // 注册 ECharts 组件（按需加载，减小体积）
 echarts.use([
@@ -975,7 +983,7 @@ function Generator() {
         <div className="p-5 bg-white border border-gray-200 rounded-lg">
           <div className="flex items-center justify-between mb-4">
             <h2 className="text-lg font-semibold text-gray-900">图表预览</h2>
-            {chartOption && (
+            {chartOption && !isChordOption(chartOption) && (
               <button
                 onClick={handleDownloadPng}
                 className="px-3 py-1.5 bg-gray-100 text-gray-700 text-sm rounded-lg hover:bg-gray-200 transition-colors border border-gray-200"
@@ -986,13 +994,19 @@ function Generator() {
             )}
           </div>
           {chartOption ? (
-            <ReactEChartsCore
-              ref={chartRef}
-              echarts={echarts}
-              option={chartOption}
-              style={{ height: '500px', width: '100%' }}
-              notMerge={true}
-            />
+            isChordOption(chartOption) ? (
+              <div style={{ height: '500px', width: '100%' }}>
+                <ChordChart data={chartOption.chordData} />
+              </div>
+            ) : (
+              <ReactEChartsCore
+                ref={chartRef}
+                echarts={echarts}
+                option={chartOption}
+                style={{ height: '500px', width: '100%' }}
+                notMerge={true}
+              />
+            )
           ) : (
             <div className="flex items-center justify-center h-[500px] bg-gray-50 rounded-lg">
               <div className="text-center text-gray-400">

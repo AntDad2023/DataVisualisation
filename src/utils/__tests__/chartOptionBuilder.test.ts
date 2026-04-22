@@ -153,8 +153,14 @@ describe('buildChartOption', () => {
         }
         expect(result.ok).toBe(true)
         expect(result.option).toBeDefined()
-        // 所有 option 都应该包含 series 字段
-        expect((result.option as { series: unknown }).series).toBeDefined()
+        // 绝大部分 option 是 ECharts option，应该包含 series 字段
+        // chord 例外：它走自研 SVG 组件，option 是 { __renderer, chordData } 标记对象
+        const opt = result.option as { series?: unknown; __renderer?: string }
+        if (opt.__renderer === 'chord-svg') {
+          expect((result.option as { chordData: unknown }).chordData).toBeDefined()
+        } else {
+          expect(opt.series).toBeDefined()
+        }
       }
     )
   })

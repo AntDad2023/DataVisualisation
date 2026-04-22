@@ -33,6 +33,16 @@
   - [x] `line.yFields` / `radar.valueFields` 的 `<select multiple>` 改为 **checkbox 列表**（不再需要按 Ctrl+click，勾选状态一目了然）
   - [x] 保留"生成图表"按钮作为明确触发入口 + 字段不全时的错误诊断
   - [x] Puppeteer 端到端验证：autofill → checkbox 默认勾选 → 切 X 轴下拉 → canvas 像素指纹立刻变（`changedCanvas: true`）
+- [x] 批次 13：弦图重做——真弦图（用户指出"graph+circular 不是弦图"）
+  - [x] 引入 d3-chord + d3-shape 依赖（+~15KB gzip）
+  - [x] `chord.ts` 改为纯数据构造器 `generateChordData`：边列表 → 有向矩阵 → d3-chord 布局（groups 扇形角度 + chords 两端独立 value）
+  - [x] 新建 `src/components/ChordChart.tsx` React + SVG 组件：d3-shape.arc 画节点扇形区段、d3-chord.ribbon 画带宽弦带、hover 高亮相邻、SVG `<title>` 原生 tooltip
+  - [x] `chartOptionBuilder` chord case 返回 `{ __renderer: 'chord-svg', chordData }` 标记对象
+  - [x] `Generator.tsx` 加 `isChordOption()` 类型守卫，chord 走 `<ChordChart />` 而非 `<ReactEChartsCore />`；PNG 下载按钮在 chord 时隐藏
+  - [x] 示例数据改为"某学年四所学校转学人数"有向矩阵（A→B=10, B→A=5 刻意不等，体现"弦两端宽度不同"）
+  - [x] 单测重写（6 条）：labels 去重顺序 / 有向矩阵 / total / groups 角度分配 / **两端 value 独立不等** / 重复行累加
+  - [x] 端到端 it.each 对 chord 豁免 series 断言，改断言 `chordData` 存在
+  - [x] 验证：26 文件 / **168 用例全绿** + build 通过（app 99→111KB，echarts 无变化，新增 d3 部分合并进 app chunk）
 - [x] 批次 12：3 张难图对齐权威定义（用户提供定义图反馈）
   - [x] **力导图**：节点大小从"按度数"改为"按关系强度之和"（20~60 px）——符合定义"节点大小可代表变量"；tooltip 分别格式化节点/边；repulsion 500 + edgeLength[60,140] + draggable + 白描边阴影
   - [x] **弦图**：曲率 0.3→0.45、线宽 1-6→2-10px、hover 线宽放到 12、加节点阴影——落实定义"交互效果必须有"；tooltip "源⇌目:数值"

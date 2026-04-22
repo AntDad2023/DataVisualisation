@@ -18,7 +18,7 @@ export { generateSunburstOption, type SunburstFieldMapping } from './sunburst'
 export { generateSankeyOption, type SankeyFieldMapping } from './sankey'
 export { generateParallelOption, type ParallelFieldMapping } from './parallel'
 export { generateForceGraphOption, type ForceGraphFieldMapping } from './forceGraph'
-export { generateChordOption, type ChordFieldMapping } from './chord'
+export { generateChordData, type ChordFieldMapping, type ChordRenderData } from './chord'
 export { generateHexbinOption, type HexbinFieldMapping } from './hexbin'
 
 // 生成器支持的图表类型 ID 列表

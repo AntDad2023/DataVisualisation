@@ -145,10 +145,10 @@ interface ChartMeta {
 17. **边列表 → `{nodes, links}` 转换**：`sankey.ts` 里把 `[[source,target,value]...]` 行扁平数据转为 ECharts 桑基图需要的双数组：`links` 保持原始顺序、`nodes` 从 source/target 两列 Set 去重而来。复杂度 O(n)，无需单独的 nodeField
 18. **平行坐标图的二态 data 格式**：无 nameField 时 `series.data` 是 `number[][]`（每项是多维数值数组）；有 nameField 时是 `{name, value:number[]}[]`。这是 ECharts 的约定，同一 generator 内部根据 mapping 自动切换输出形态
 19bis. **边列表类图表的共享转换**：`edgeListHelper.rowsToGraphData` 跟 sankey 的边列表处理类似但产出不同：保留 `{nodes, links}`，且节点带 `symbolSize` 按 degree 归一化到 20~50px（度数越高节点越大）。`force-graph` 和 `chord` 共用这一 helper，只在 option 里切 `layout`（force vs circular）和 lineStyle（直线 vs curveness=0.3）
-20. **ECharts 无原生图表类型的妥协策略**：
-    - **chord（弦图）**：ECharts 4+ 移除了独立 chord 类型。用 `graph + layout:'circular' + 贝塞尔曲率` 近似，视觉 80% 一致
-    - **hexbin（六边形分箱图）**：ECharts 完全没有。自己实现分箱算法（pointy-top 六边形 + odd-row 偏移 + round-to-nearest-center），渲染用 `scatter + symbol:'path://SVG'` + `visualMap` 映射颜色。symbolSize 固定像素（30px），用户通过 `binSize` 参数控制网格粗细
-    - 原则：**不引入新依赖，用已有原语拼装近似效果**。对数据可视化教学用途来说，近似版足够传达图表概念
+20. **ECharts 无原生图表类型的两种应对**：
+    - **chord（弦图）**：**完全旁路 ECharts**。`graph+circular` 的近似是"节点在圆周上连细线"，跟定义里"节点是扇形区段、弦是带宽度可不等的带子"根本不是一回事。最终引入 `d3-chord`（~3KB gzip，纯布局算法）+ `d3-shape` 的 `arc` 生成器 + `d3-chord` 的 `ribbon` path 生成器，自研 `<ChordChart />` React + SVG 组件渲染。通过 `chartOptionBuilder` 返回 `{ __renderer: 'chord-svg', chordData }` 标记 option，Generator 用 `isChordOption()` 类型守卫路由到 SVG 组件而非 `<ReactEChartsCore />`。这是全站**唯一**不走 ECharts 的图表
+    - **hexbin（六边形分箱图）**：ECharts 完全没有但可用原语拼。自己实现分箱算法（pointy-top + odd-row 偏移 + round-to-nearest-center），渲染用 `scatter + symbol:'path://SVG'` + `visualMap` 映射颜色。symbolSize 固定像素（30px），用户通过 `binSize` 参数控制网格粗细
+    - 原则：**能用 ECharts 原语拼就拼（hexbin），拼不出真形的引入专用库（chord）**。数据可视化教学平台，正确性 > 技术统一性
 21. **非字段配置项白名单 `NON_FIELD_KEYS`**：`binCount`（直方图）和 `binSize`（hexbin）这类数字配置参数虽然也放在 `fieldMapping` 里（同一份 state），但不是"列名"。字段冲突检测 `findDuplicateField` 对这些 key 白名单豁免，避免误报"列 X 重复占用"
 22. **Autofill 两条路径 + 纯函数解耦**：Generator 挂载时自动填数据有两条来源：
     - **sessionStorage**（详情页"带入生成器"按钮写入）—— 优先级最高

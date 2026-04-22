@@ -19,7 +19,7 @@ import {
   generateSankeyOption,
   generateParallelOption,
   generateForceGraphOption,
-  generateChordOption,
+  generateChordData,
   generateHexbinOption,
 } from './chartConfigs'
 
@@ -233,13 +233,18 @@ export function buildChartOption(
 
       case 'chord':
         if (!s('sourceField') || !s('targetField') || !s('valueField')) return { ok: false, error: '请选择来源列、目标列和数值列' }
+        // chord 不走 ECharts，返回特殊标记 option 给 <ChordChart /> SVG 组件识别并渲染
+        // __renderer === 'chord-svg' 是 Generator.tsx 渲染分支的路由键
         return {
           ok: true,
-          option: generateChordOption(data, {
-            sourceField: s('sourceField'),
-            targetField: s('targetField'),
-            valueField: s('valueField'),
-          }),
+          option: {
+            __renderer: 'chord-svg',
+            chordData: generateChordData(data, {
+              sourceField: s('sourceField'),
+              targetField: s('targetField'),
+              valueField: s('valueField'),
+            }),
+          },
         }
 
       case 'hexbin':
