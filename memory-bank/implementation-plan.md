@@ -58,6 +58,23 @@
 - [x] `chartConfigs/{bar,histogram,boxplot}` 测试（共 16 用例，覆盖数值算法与降级分支）
 - [x] `npm run test:run` 全绿 + `npm run build` 通过
 
+### 批次 10b：扩展 4 种新结构图表 ✅
+- [x] `hierarchyHelper.ts`：共享的"平铺→嵌套"树结构转换
+  - 输入: `[[父,子,值]...]` 平铺行
+  - 输出: `[{name, value=sum(children), children:[{name,value}...]}]`
+  - treemap 和 sunburst 共用这个转换
+- [x] 四个 generator：
+  - `treemap.ts`: 矩形嵌套，借 hierarchy helper + `series.type='treemap'`
+  - `sunburst.ts`: 同心圆环，借 hierarchy helper + `series.type='sunburst'` + `radius:[0,'90%']`
+  - `sankey.ts`: 边列表 → `{nodes, links}`，nodes 从 source/target 列去重，保留 links 原始顺序
+  - `parallel.ts`: `dimensions` 数组 → 每维一根 `parallelAxis`，可选 `nameField` 时 data 用 `{name,value}` 否则用 `number[]`
+- [x] Generator.tsx: `echarts.use` 新增 4 个 Chart 模块 + `ParallelComponent`（平行坐标必需）
+- [x] Generator.tsx UI: `treemap/sunburst` 共用 `case 'treemap': case 'sunburst':` 合并分支；`sankey` 三下拉；`parallel` checkbox 多选维度 + 可选 nameField 下拉
+- [x] chartsData: 四图 `generatorSupported:true` + `defaultMapping`
+- [x] 单测: 4 个文件共 14 条（含 hierarchyHelper 的 2 条转换断言）
+- [x] 端到端 `it.each` 从 14 → 18 自动扩展，全部必须能用 exampleData+defaultMapping 成图
+- [x] 验证: 18 文件 / 120 用例 → 22 文件 / 138 用例全绿
+
 ### 批次 10a：扩展 3 种变体图表 ✅
 - [x] 新建三个纯函数：`stackedArea.ts` / `nightingaleRose.ts` / `bubble.ts`
   - stacked-area: 数据处理复用 stackedBar 的宽表透视，series.type=line + areaStyle + stack

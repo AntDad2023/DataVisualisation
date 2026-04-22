@@ -14,6 +14,10 @@ import {
   generateStackedAreaOption,
   generateNightingaleRoseOption,
   generateBubbleOption,
+  generateTreemapOption,
+  generateSunburstOption,
+  generateSankeyOption,
+  generateParallelOption,
 } from './chartConfigs'
 
 export type FieldMapping = Record<string, string | string[]>
@@ -167,6 +171,49 @@ export function buildChartOption(
             yField: s('yField'),
             sizeField: s('sizeField'),
             categoryField: s('categoryField') || undefined,
+          }),
+        }
+
+      case 'treemap':
+        if (!s('parentField') || !s('childField') || !s('valueField')) return { ok: false, error: '请选择父级列、子级列和数值列' }
+        return {
+          ok: true,
+          option: generateTreemapOption(data, {
+            parentField: s('parentField'),
+            childField: s('childField'),
+            valueField: s('valueField'),
+          }),
+        }
+
+      case 'sunburst':
+        if (!s('parentField') || !s('childField') || !s('valueField')) return { ok: false, error: '请选择父级列、子级列和数值列' }
+        return {
+          ok: true,
+          option: generateSunburstOption(data, {
+            parentField: s('parentField'),
+            childField: s('childField'),
+            valueField: s('valueField'),
+          }),
+        }
+
+      case 'sankey':
+        if (!s('sourceField') || !s('targetField') || !s('valueField')) return { ok: false, error: '请选择来源列、目标列和数值列' }
+        return {
+          ok: true,
+          option: generateSankeyOption(data, {
+            sourceField: s('sourceField'),
+            targetField: s('targetField'),
+            valueField: s('valueField'),
+          }),
+        }
+
+      case 'parallel':
+        if (arr('dimensions').length < 2) return { ok: false, error: '请至少勾选 2 个数值维度' }
+        return {
+          ok: true,
+          option: generateParallelOption(data, {
+            dimensions: arr('dimensions'),
+            nameField: s('nameField') || undefined,
           }),
         }
 

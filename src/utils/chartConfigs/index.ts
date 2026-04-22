@@ -13,6 +13,10 @@ export { generateFunnelOption, type FunnelFieldMapping } from './funnel'
 export { generateStackedAreaOption, type StackedAreaFieldMapping } from './stackedArea'
 export { generateNightingaleRoseOption, type NightingaleRoseFieldMapping } from './nightingaleRose'
 export { generateBubbleOption, type BubbleFieldMapping } from './bubble'
+export { generateTreemapOption, type TreemapFieldMapping } from './treemap'
+export { generateSunburstOption, type SunburstFieldMapping } from './sunburst'
+export { generateSankeyOption, type SankeyFieldMapping } from './sankey'
+export { generateParallelOption, type ParallelFieldMapping } from './parallel'
 
 // 生成器支持的图表类型 ID 列表
 export const SUPPORTED_CHART_TYPES = [
@@ -30,4 +34,8 @@ export const SUPPORTED_CHART_TYPES = [
   { id: 'heatmap', name: '热力图' },
   { id: 'radar', name: '雷达图' },
   { id: 'funnel', name: '漏斗图' },
+  { id: 'treemap', name: '树图' },
+  { id: 'sunburst', name: '旭日图' },
+  { id: 'sankey', name: '桑基图' },
+  { id: 'parallel', name: '平行坐标图' },
 ] as const

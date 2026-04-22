@@ -33,6 +33,15 @@
   - [x] `line.yFields` / `radar.valueFields` 的 `<select multiple>` 改为 **checkbox 列表**（不再需要按 Ctrl+click，勾选状态一目了然）
   - [x] 保留"生成图表"按钮作为明确触发入口 + 字段不全时的错误诊断
   - [x] Puppeteer 端到端验证：autofill → checkbox 默认勾选 → 切 X 轴下拉 → canvas 像素指纹立刻变（`changedCanvas: true`）
+- [x] 批次 10b：生成器扩展 4 种新结构图表（树图 / 旭日图 / 桑基图 / 平行坐标图）
+  - [x] 新增 `hierarchyHelper.ts`：平铺 `[父, 子, 值]` → 嵌套 `{name, value, children}` 的树结构转换（treemap/sunburst 共享）
+  - [x] 新增 `treemap.ts` / `sunburst.ts`：复用 helper，不同的 series.type 和样式
+  - [x] 新增 `sankey.ts`：边列表 → `{nodes, links}`，nodes 从 source/target 自动去重
+  - [x] 新增 `parallel.ts`：dimensions 数组字段 → 每维一根 `parallelAxis`，可选 nameField 给线命名
+  - [x] `Generator.tsx` 新增 ECharts 模块注册：`TreemapChart / SunburstChart / SankeyChart / ParallelChart + ParallelComponent`（+ 4 个 case 字段 UI，parallel 用 checkbox 多选维度）
+  - [x] `chartsData.ts` 四图 `generatorSupported:true` + `defaultMapping`
+  - [x] 测试：4 个独立单测文件（共 14 条）+ 端到端 it.each 自动扩展到 18 种图表
+  - [x] 验证：18 文件 / 120 用例 → 22 文件 / 138 用例，全绿 + build 通过
 - [x] 批次 10a：生成器扩展 3 种变体图表（堆叠面积图 / 南丁格尔玫瑰图 / 气泡图）
   - [x] 新增 `src/utils/chartConfigs/{stackedArea,nightingaleRose,bubble}.ts` 三个 generator 纯函数
   - [x] 气泡图 `symbolSize` 按第三维度数值归一化到 12-60px（等值降级为 25px）
@@ -52,14 +61,15 @@
 
 https://antdad2023.github.io/DataVisualisation/
 
-## 生成器当前支持的图表（14 种）
+## 生成器当前支持的图表（18 种）
 
-对比：条形图 / 堆叠柱状图 / 雷达图
+对比：条形图 / 堆叠柱状图 / 雷达图 / 平行坐标图
 趋势：折线图 / 面积图 / 堆叠面积图
 占比：饼图 / 南丁格尔玫瑰图
 关系：散点图 / 气泡图 / 热力图
 分布：直方图 / 箱线图
-流向：漏斗图
+流向：漏斗图 / 桑基图
+层级：树图 / 旭日图
 
 ## 构建产物（代码分割后）
 
@@ -113,3 +123,6 @@ https://antdad2023.github.io/DataVisualisation/
 | 2026-04-22 | `npm run test:run` 批次 10a 后 | ✅ 18 文件 / 120 用例全绿（+15 新用例） |
 | 2026-04-22 | `npm run build` 批次 10a 后 | ✅ 通过，app chunk 77→85KB |
 | 2026-04-22 | 端到端 `it.each` 自动覆盖：14 个 generatorSupported 图表全部用 exampleData + defaultMapping 成功生成 option | ✅ 通过 |
+| 2026-04-22 | `npm run test:run` 批次 10b 后 | ✅ 22 文件 / 138 用例全绿（+18 新用例） |
+| 2026-04-22 | `npm run build` 批次 10b 后 | ✅ 通过；app 85→92KB，echarts 626→711KB（新 4 chart + ParallelComponent） |
+| 2026-04-22 | 端到端 `it.each` 自动扩展到 18 个 generatorSupported 图表全部成图 | ✅ 通过 |

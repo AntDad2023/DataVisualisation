@@ -503,7 +503,8 @@ export const chartsData: ChartMeta[] = [
         ['电子', '手机', 80], ['电子', '电脑', 60],
       ],
     },
-    generatorSupported: false,
+    generatorSupported: true,
+    defaultMapping: { parentField: '大类', childField: '小类', valueField: '金额(万)' },
   },
 
   // ===== 16. 桑基图 =====
@@ -531,7 +532,8 @@ export const chartsData: ChartMeta[] = [
         ['首页', '产品页', 600], ['首页', '博客', 200], ['首页', '关于', 100],
       ],
     },
-    generatorSupported: false,
+    generatorSupported: true,
+    defaultMapping: { sourceField: '来源', targetField: '目标', valueField: '流量' },
   },
 
   // ===== 17. 旭日图 =====
@@ -560,7 +562,8 @@ export const chartsData: ChartMeta[] = [
         ['美洲', '美国', 3.3], ['美洲', '巴西', 2.1],
       ],
     },
-    generatorSupported: false,
+    generatorSupported: true,
+    defaultMapping: { parentField: '大洲', childField: '国家', valueField: '人口(亿)' },
   },
 
   // ===== 18. 平行坐标图 =====
@@ -591,7 +594,8 @@ export const chartsData: ChartMeta[] = [
         [180, 100, 15, 4.0],
       ],
     },
-    generatorSupported: false,
+    generatorSupported: true,
+    defaultMapping: { dimensions: ['价格(万)', '面积(m²)', '楼层', '评分'] },
   },
 
   // ===== 19. 力导图 =====

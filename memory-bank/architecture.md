@@ -141,6 +141,9 @@ interface ChartMeta {
     - **B 层 builder 校验**：`buildChartOption` 在 switch 前统一扫描所有字段值（排除 `binCount` 等非字段配置），冲突时返回 `kind:'conflict'` 带具体列名的 error
     - **C 层 动态反馈**：Generator 动态 useEffect 对 `kind:'conflict'` 立刻 setError + setChartOption(null)，让用户立刻看到红字而不是盯着旧图
 15. **错误分类 `BuildChartOptionErrorKind`**：`incomplete`（字段没填全，编辑中静默）/ `conflict`（字段冲突，立刻红字）/ `unsupported`（未知图表类型）/ `runtime`（底层生成器异常）。把"严重到必须打扰用户"和"还在编辑中不打扰"分开处理，UX 既不迟钝也不吵闹
+16. **层级数据平铺 → 嵌套转换**：`hierarchyHelper.rowsToHierarchy` 把 `[父,子,值]` 行扁平数据转为 ECharts `{name, value, children}` 嵌套结构。父节点 value 自动算作子节点之和（方便 tooltip）。`treemap` 和 `sunburst` 共用此 helper，只差 `series.type` 和样式，实现成本低
+17. **边列表 → `{nodes, links}` 转换**：`sankey.ts` 里把 `[[source,target,value]...]` 行扁平数据转为 ECharts 桑基图需要的双数组：`links` 保持原始顺序、`nodes` 从 source/target 两列 Set 去重而来。复杂度 O(n)，无需单独的 nodeField
+18. **平行坐标图的二态 data 格式**：无 nameField 时 `series.data` 是 `number[][]`（每项是多维数值数组）；有 nameField 时是 `{name, value:number[]}[]`。这是 ECharts 的约定，同一 generator 内部根据 mapping 自动切换输出形态
 
 ## 测试策略
 
@@ -148,7 +151,7 @@ interface ChartMeta {
 - **运行命令**：`npm run test:run`（一次性执行）/ `npm test`（watch 模式）
 - **命名约定**：测试文件与被测文件同级的 `__tests__/` 目录下，以 `*.test.ts` 命名
 - **覆盖重点**：边界条件（80% 阈值、空输入、列数不一致、非数值单元格），以及容易出 bug 的数值算法（直方图分箱、箱线图五数概括、雷达图 max 计算）
-- **当前规模**：18 文件 / 120 用例，覆盖全部 14 种生成器图表、option builder 分发与字段冲突检测、示例数据转换、所有 utils 纯函数
+- **当前规模**：22 文件 / 138 用例，覆盖全部 18 种生成器图表、option builder 分发与字段冲突检测、示例数据转换、层级/边列表结构转换、所有 utils 纯函数
 
 ## 文档产出补充
 

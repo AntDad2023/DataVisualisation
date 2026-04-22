@@ -5,10 +5,11 @@ import * as echarts from 'echarts/core'
 import {
   BarChart, LineChart, ScatterChart, PieChart,
   HeatmapChart, BoxplotChart, RadarChart, FunnelChart,
+  TreemapChart, SunburstChart, SankeyChart, ParallelChart,
 } from 'echarts/charts'
 import {
   TitleComponent, TooltipComponent, GridComponent,
-  LegendComponent, VisualMapComponent,
+  LegendComponent, VisualMapComponent, ParallelComponent,
 } from 'echarts/components'
 import { CanvasRenderer } from 'echarts/renderers'
 import type { ParsedData } from '../utils/types'
@@ -21,7 +22,9 @@ import { buildChartOption } from '../utils/chartOptionBuilder'
 echarts.use([
   BarChart, LineChart, ScatterChart, PieChart,
   HeatmapChart, BoxplotChart, RadarChart, FunnelChart,
-  TitleComponent, TooltipComponent, GridComponent, LegendComponent, VisualMapComponent,
+  TreemapChart, SunburstChart, SankeyChart, ParallelChart,
+  TitleComponent, TooltipComponent, GridComponent,
+  LegendComponent, VisualMapComponent, ParallelComponent,
   CanvasRenderer,
 ])
 
@@ -620,6 +623,125 @@ function Generator() {
                 <option value="">不使用</option>
                 {stringColumns.map((col) => {
                   const used = isUsedByOtherDim('categoryField', col)
+                  return <option key={col} value={col} disabled={used}>{col}{used ? ' · 已用' : ''}</option>
+                })}
+              </select>
+            </label>
+          </>
+        )
+
+      case 'treemap':
+      case 'sunburst':
+        return (
+          <>
+            <label className="block mb-3">
+              <span className="text-sm font-medium text-gray-700 mb-1 block">父级分类列（如"大类"）</span>
+              <select className={selectClass} value={fieldMapping.parentField as string || ''} onChange={(e) => setFieldMapping({ ...fieldMapping, parentField: e.target.value })}>
+                <option value="">请选择</option>
+                {stringColumns.map((col) => {
+                  const used = isUsedByOtherDim('parentField', col)
+                  return <option key={col} value={col} disabled={used}>{col}{used ? ' · 已用' : ''}</option>
+                })}
+              </select>
+            </label>
+            <label className="block mb-3">
+              <span className="text-sm font-medium text-gray-700 mb-1 block">子级分类列（如"小类"）</span>
+              <select className={selectClass} value={fieldMapping.childField as string || ''} onChange={(e) => setFieldMapping({ ...fieldMapping, childField: e.target.value })}>
+                <option value="">请选择</option>
+                {stringColumns.map((col) => {
+                  const used = isUsedByOtherDim('childField', col)
+                  return <option key={col} value={col} disabled={used}>{col}{used ? ' · 已用' : ''}</option>
+                })}
+              </select>
+            </label>
+            <label className="block mb-3">
+              <span className="text-sm font-medium text-gray-700 mb-1 block">数值列</span>
+              <select className={selectClass} value={fieldMapping.valueField as string || ''} onChange={(e) => setFieldMapping({ ...fieldMapping, valueField: e.target.value })}>
+                <option value="">请选择</option>
+                {numericColumns.map((col) => {
+                  const used = isUsedByOtherDim('valueField', col)
+                  return <option key={col} value={col} disabled={used}>{col}{used ? ' · 已用' : ''}</option>
+                })}
+              </select>
+            </label>
+          </>
+        )
+
+      case 'sankey':
+        return (
+          <>
+            <label className="block mb-3">
+              <span className="text-sm font-medium text-gray-700 mb-1 block">来源列（起点）</span>
+              <select className={selectClass} value={fieldMapping.sourceField as string || ''} onChange={(e) => setFieldMapping({ ...fieldMapping, sourceField: e.target.value })}>
+                <option value="">请选择</option>
+                {stringColumns.map((col) => {
+                  const used = isUsedByOtherDim('sourceField', col)
+                  return <option key={col} value={col} disabled={used}>{col}{used ? ' · 已用' : ''}</option>
+                })}
+              </select>
+            </label>
+            <label className="block mb-3">
+              <span className="text-sm font-medium text-gray-700 mb-1 block">目标列（终点）</span>
+              <select className={selectClass} value={fieldMapping.targetField as string || ''} onChange={(e) => setFieldMapping({ ...fieldMapping, targetField: e.target.value })}>
+                <option value="">请选择</option>
+                {stringColumns.map((col) => {
+                  const used = isUsedByOtherDim('targetField', col)
+                  return <option key={col} value={col} disabled={used}>{col}{used ? ' · 已用' : ''}</option>
+                })}
+              </select>
+            </label>
+            <label className="block mb-3">
+              <span className="text-sm font-medium text-gray-700 mb-1 block">流量数值列</span>
+              <select className={selectClass} value={fieldMapping.valueField as string || ''} onChange={(e) => setFieldMapping({ ...fieldMapping, valueField: e.target.value })}>
+                <option value="">请选择</option>
+                {numericColumns.map((col) => {
+                  const used = isUsedByOtherDim('valueField', col)
+                  return <option key={col} value={col} disabled={used}>{col}{used ? ' · 已用' : ''}</option>
+                })}
+              </select>
+            </label>
+          </>
+        )
+
+      case 'parallel':
+        return (
+          <>
+            <div className="block mb-3">
+              <span className="text-sm font-medium text-gray-700 mb-1 block">维度列（勾选至少 2 个数值列，每个维度一根竖轴）</span>
+              <div className="border border-gray-300 rounded-lg p-2 max-h-48 overflow-y-auto">
+                {numericColumns.length === 0 ? (
+                  <p className="text-sm text-gray-400 px-2 py-1">数据中没有数值列</p>
+                ) : (
+                  numericColumns.map((col) => {
+                    const current = (fieldMapping.dimensions as string[]) || []
+                    const checked = current.includes(col)
+                    const disabled = isUsedByOtherDim('dimensions', col)
+                    return (
+                      <label key={col} className={`flex items-center gap-2 px-2 py-1 rounded ${disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer hover:bg-gray-50'}`}>
+                        <input
+                          type="checkbox"
+                          checked={checked}
+                          disabled={disabled}
+                          onChange={(e) => {
+                            const next = e.target.checked
+                              ? [...current, col]
+                              : current.filter((x) => x !== col)
+                            setFieldMapping({ ...fieldMapping, dimensions: next })
+                          }}
+                        />
+                        <span className="text-sm text-gray-700">{col}{disabled ? ' · 已用作名称列' : ''}</span>
+                      </label>
+                    )
+                  })
+                )}
+              </div>
+            </div>
+            <label className="block mb-3">
+              <span className="text-sm font-medium text-gray-700 mb-1 block">名称列（可选，给每条折线命名）</span>
+              <select className={selectClass} value={fieldMapping.nameField as string || ''} onChange={(e) => setFieldMapping({ ...fieldMapping, nameField: e.target.value })}>
+                <option value="">不使用</option>
+                {stringColumns.map((col) => {
+                  const used = isUsedByOtherDim('nameField', col)
                   return <option key={col} value={col} disabled={used}>{col}{used ? ' · 已用' : ''}</option>
                 })}
               </select>
