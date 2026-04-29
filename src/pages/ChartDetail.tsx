@@ -25,7 +25,7 @@ function handleOpenInGenerator(chart: ChartMeta, navigate: (path: string) => voi
  * 返回 null 表示不需要渲染预览区块（没有 defaultMapping 或图表不在生成器支持范围内）。
  * 返回 { ok: true, option } 或 { ok: false, error } 供调用方决定渲染内容。
  */
-function buildPreviewResult(chart: ChartMeta) {
+export function buildPreviewResult(chart: ChartMeta) {
   // 没有 defaultMapping 说明这张图还没接入生成器，跳过预览
   if (!chart.defaultMapping) return null
 

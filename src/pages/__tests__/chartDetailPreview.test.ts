@@ -1,27 +1,15 @@
 import { describe, it, expect } from 'vitest'
-import { chartsData } from '../../data/chartsData'
-import { exampleToParsedData } from '../../utils/exampleToParsedData'
-import { buildChartOption } from '../../utils/chartOptionBuilder'
-import type { ChartMeta } from '../../data/chartsData'
+import { chartsData, type ChartMeta } from '../../data/chartsData'
+import { buildPreviewResult } from '../ChartDetail'
 
 /**
  * ChartDetail 预览区块的逻辑单测。
  *
- * ChartDetail 的预览区块本质上是两步：
- *   1. exampleToParsedData(chart.exampleData) → ParsedData
- *   2. buildChartOption(parsedData, chart.id, chart.defaultMapping) → option
- * 这两步是纯函数，在 node 环境下可以直接测，无需 DOM / jsdom。
+ * 直接 import ChartDetail 里的 buildPreviewResult 真实实现来测，
+ * 而不是在测试里复制一份实现——避免测试和实现各自维护、随时间漂移。
  *
- * buildPreviewResult 函数是 ChartDetail 内部实现细节，通过测试其依赖的
- * 两个公共工具来验证同等行为，保持测试不与 UI 结构耦合。
+ * buildPreviewResult 是纯函数（无 DOM / jsdom 依赖），node 环境下可直接测。
  */
-
-/** 模拟 buildPreviewResult 逻辑（与 ChartDetail.tsx 中的实现完全一致） */
-function buildPreviewResult(chart: ChartMeta) {
-  if (!chart.defaultMapping) return null
-  const parsedData = exampleToParsedData(chart.exampleData)
-  return buildChartOption(parsedData, chart.id, chart.defaultMapping)
-}
 
 // 取三张具有代表性的图表
 const barChart = chartsData.find((c) => c.id === 'bar')!
