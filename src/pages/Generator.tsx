@@ -20,15 +20,10 @@ import { SUPPORTED_CHART_TYPES } from '../utils/chartConfigs'
 import { buildChartOption } from '../utils/chartOptionBuilder'
 import { resolveAutofillPayload } from '../utils/autofillResolver'
 import ChordChart from '../components/ChordChart'
-import type { ChordRenderData } from '../utils/chartConfigs/chord'
+// isChordOption 从 ChartPreview 统一导出，避免两处各自维护同一类型守卫逻辑
+import { isChordOption } from '../components/ChartPreview'
 
-// chord 图表用 __renderer 标记走自研 SVG 组件，不走 ECharts
-type ChordOption = { __renderer: 'chord-svg'; chordData: ChordRenderData }
-function isChordOption(opt: object | null): opt is ChordOption {
-  return !!opt && (opt as { __renderer?: string }).__renderer === 'chord-svg'
-}
-
-// 注册 ECharts 组件（按需加载，减小体积）
+// 注册 ECharts 组件（与 ChartPreview.tsx 保持同一注册集合；echarts.use 幂等，无重复注册问题）
 echarts.use([
   BarChart, LineChart, ScatterChart, PieChart,
   HeatmapChart, BoxplotChart, RadarChart, FunnelChart,
