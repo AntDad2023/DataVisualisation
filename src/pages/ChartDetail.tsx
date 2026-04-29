@@ -1,6 +1,8 @@
 import { useParams, Link, useNavigate } from 'react-router-dom'
 import { chartsData, type ChartMeta } from '../data/chartsData'
 import { exampleToParsedData } from '../utils/exampleToParsedData'
+import { buildChartOption } from '../utils/chartOptionBuilder'
+import ChartPreview from '../components/ChartPreview'
 
 /**
  * 点击"带入生成器"：把示例数据 + 字段映射写入 sessionStorage，
@@ -15,6 +17,20 @@ function handleOpenInGenerator(chart: ChartMeta, navigate: (path: string) => voi
   }
   sessionStorage.setItem('generator:autofill', JSON.stringify(payload))
   navigate(`/generator?chart=${chart.id}`)
+}
+
+/**
+ * 用图表的示例数据 + defaultMapping 尝试生成预览 option。
+ *
+ * 返回 null 表示不需要渲染预览区块（没有 defaultMapping 或图表不在生成器支持范围内）。
+ * 返回 { ok: true, option } 或 { ok: false, error } 供调用方决定渲染内容。
+ */
+function buildPreviewResult(chart: ChartMeta) {
+  // 没有 defaultMapping 说明这张图还没接入生成器，跳过预览
+  if (!chart.defaultMapping) return null
+
+  const parsedData = exampleToParsedData(chart.exampleData)
+  return buildChartOption(parsedData, chart.id, chart.defaultMapping)
 }
 
 function ChartDetail() {
@@ -33,6 +49,9 @@ function ChartDetail() {
       </div>
     )
   }
+
+  // 在渲染阶段计算预览结果，避免把 buildChartOption 逻辑散落到 JSX 里
+  const previewResult = buildPreviewResult(chart)
 
   return (
     <div className="max-w-4xl mx-auto px-6 py-8">
@@ -126,7 +145,25 @@ function ChartDetail() {
         </div>
       </section>
 
-      {/* 区块 4：带入生成器 */}
+      {/* 区块 4：预览效果（示例数据表格之后、带入生成器按钮之前）
+          只在有 defaultMapping 且 buildChartOption 能成功时渲染；
+          没有 defaultMapping 的图表跳过，避免展示空白区块 */}
+      {previewResult && (
+        <section className="mb-8 p-6 bg-white border border-gray-200 rounded-lg">
+          <h2 className="text-xl font-bold text-gray-900 mb-4">📈 预览效果</h2>
+          {previewResult.ok ? (
+            // 高度 400px 与设计要求一致；白色背景和圆角由外层 section 提供
+            <ChartPreview option={previewResult.option} height={400} />
+          ) : (
+            // buildChartOption 失败时显示友好提示，不能让页面白屏
+            <div className="flex items-center justify-center h-[400px] bg-gray-50 rounded-lg">
+              <p className="text-sm text-gray-400">暂无预览（{previewResult.error}）</p>
+            </div>
+          )}
+        </section>
+      )}
+
+      {/* 区块 5：带入生成器 */}
       {chart.generatorSupported && (
         <section className="p-6 bg-blue-50 border border-blue-200 rounded-lg text-center">
           <h2 className="text-lg font-bold text-blue-800 mb-2">🛠️ 试试看</h2>
