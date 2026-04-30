@@ -1,0 +1,76 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>课件下载 - 数据可视化课程</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body { background:#0f172a; color:#e2e8f0; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif; }
+    .container { max-width:860px; margin:0 auto; padding:32px 20px 60px; }
+    .page-title { font-size:2rem; font-weight:800; margin-bottom:6px; }
+    .page-sub { color:#64748b; margin-bottom:32px; font-size:0.9rem; }
+
+    .card-list { display:flex; flex-direction:column; gap:16px; }
+    .card {
+      background:#1e293b; border:1px solid #334155; border-radius:12px;
+      padding:24px; display:flex; align-items:center; justify-content:space-between;
+      gap:16px; transition:border-color 0.2s;
+    }
+    .card:hover { border-color:#3b82f6; }
+    .card-info { flex:1; min-width:0; }
+    .card-name { font-size:1.05rem; font-weight:600; margin-bottom:4px; word-break:break-all; }
+    .card-meta { color:#64748b; font-size:0.82rem; display:flex; gap:12px; flex-wrap:wrap; }
+    .card-meta span { display:inline-flex; align-items:center; gap:4px; }
+
+    .btn-download {
+      flex-shrink:0; display:inline-flex; align-items:center; gap:6px;
+      background:#3b82f6; color:#fff; text-decoration:none;
+      padding:10px 20px; border-radius:8px; font-size:0.88rem; font-weight:600;
+      transition:background 0.2s;
+    }
+    .btn-download:hover { background:#2563eb; }
+
+    .empty { text-align:center; color:#475569; padding:60px 0; font-size:0.95rem; }
+
+    @media (max-width:600px) {
+      .card { flex-direction:column; align-items:stretch; }
+      .btn-download { text-align:center; justify-content:center; }
+    }
+  </style>
+</head>
+<body>
+<nav style="background:#1e293b;border-bottom:1px solid #334155;padding:10px 16px;position:sticky;top:0;z-index:99;">
+  <div style="max-width:860px;margin:0 auto;display:flex;align-items:center;gap:16px;font-size:0.85rem;">
+    <a href="/DataVisualisation/#/" style="color:#93c5fd;text-decoration:none;font-weight:700;">← 返回课程主页</a>
+    <span style="color:#334155;">|</span>
+    <a href="d3-tutorial.html" style="color:#94a3b8;text-decoration:none;">📐 D3 教程</a>
+    <a href="echarts-tutorial.html" style="color:#94a3b8;text-decoration:none;">📊 ECharts 教程</a>
+    <a href="d3-vs-echarts.html" style="color:#94a3b8;text-decoration:none;">⚖️ 对比</a>
+  </div>
+</nav>
+
+<div class="container">
+  <div class="page-title">📁 课件下载</div>
+  <p class="page-sub">武汉理工大学经济学院 · 数据可视化课程 · 点击右侧按钮直接下载</p>
+
+  <div class="card-list">
+
+    <div class="card">
+      <div class="card-info">
+        <div class="card-name">📄 图表类型——数据可视化.pptx</div>
+        <div class="card-meta">
+          <span>📐 约 46 MB</span>
+          <span>📝 常见图表类型与选型</span>
+        </div>
+      </div>
+      <a class="btn-download" href="slides/图表类型——数据可视化.pptx" download>
+        ⬇ 下载
+      </a>
+    </div>
+
+  </div>
+</div>
+
+</body>
+</html>
