@@ -6,9 +6,14 @@ function Layout() {
       {/* 导航栏 */}
       <nav className="bg-white border-b border-gray-200 px-6 py-4">
         <div className="max-w-6xl mx-auto flex items-center justify-between">
-          <NavLink to="/" className="text-xl font-bold text-blue-600">
-            📊 数据可视化课程
-          </NavLink>
+          <div className="flex flex-col leading-tight">
+            <NavLink to="/" className="text-xl font-bold text-blue-600">
+              📊 数据可视化课程
+            </NavLink>
+            <div className="mt-1 text-xs text-gray-500">
+              武汉理工大学经济学院 <span className="mx-2 text-gray-300">|</span> 主讲人：曹洪江
+            </div>
+          </div>
           <div className="flex gap-6">
             <NavLink
               to="/"

@@ -9,7 +9,7 @@ function Home() {
           数据可视化课程
         </h1>
         <p className="text-lg text-gray-600 mb-8">
-          学习如何用图表讲故事——从认识图表到动手生成，一站式掌握数据可视化核心技能
+          学习如何用图表讲故事——从认识图表到动手生成，一图胜千言
         </p>
         <div className="flex justify-center gap-4">
           <Link
