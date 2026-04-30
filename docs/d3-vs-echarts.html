@@ -1,0 +1,529 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>D3.js vs ECharts 能力对比</title>
+  <style>
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      background:#0f172a;
+      font-family:"PingFang SC","Microsoft YaHei",sans-serif;
+      color:#e2e8f0; padding:32px 16px 60px; line-height:1.7;
+    }
+    .container { max-width:960px; margin:0 auto; }
+    .page-title {
+      font-size:1.9rem; font-weight:900; letter-spacing:2px;
+      background:linear-gradient(90deg,#3b82f6 0%,#fbbf24 100%);
+      -webkit-background-clip:text; background-clip:text;
+      color:transparent;
+    }
+    .page-sub { color:#64748b; font-size:0.9rem; margin:6px 0 36px; }
+
+    /* 头部对比卡 */
+    .vs-header {
+      display:grid; grid-template-columns: 1fr auto 1fr; gap:20px;
+      align-items:center; margin-bottom:36px;
+    }
+    .vs-card {
+      background:#1e293b; border:1px solid #334155;
+      border-radius:14px; padding:20px;
+    }
+    .vs-card.left  { border-left:4px solid #3b82f6; }
+    .vs-card.right { border-left:4px solid #fbbf24; }
+    .vs-card h3 { font-size:1.2rem; margin-bottom:6px; }
+    .vs-card.left h3 { color:#60a5fa; }
+    .vs-card.right h3 { color:#fbbf24; }
+    .vs-card p  { color:#94a3b8; font-size:0.85rem; margin-bottom:8px; }
+    .vs-card .tagline { color:#64748b; font-size:0.78rem; font-style:italic; }
+    .vs-divider {
+      font-size:1.5rem; font-weight:900; color:#475569; padding:0 4px;
+    }
+
+    /* 维度对比表 */
+    .dim-section {
+      background:#1e293b; border:1px solid #334155;
+      border-radius:16px; padding:24px 28px; margin-bottom:24px;
+    }
+    .dim-title {
+      display:flex; align-items:center; gap:10px;
+      font-size:1.1rem; font-weight:700; margin-bottom:16px;
+      color:#e2e8f0;
+    }
+    .dim-icon {
+      width:30px; height:30px; border-radius:50%;
+      display:flex; align-items:center; justify-content:center;
+      font-size:0.9rem; flex-shrink:0;
+    }
+    .dim-grid {
+      display:grid; grid-template-columns:140px 1fr 1fr;
+      gap:0; border-radius:8px; overflow:hidden;
+    }
+    .dim-grid > div {
+      padding:12px 14px; border-bottom:1px solid #334155;
+      font-size:0.88rem; line-height:1.6;
+    }
+    .dim-grid > div:nth-child(3n+1) {
+      background:#0f172a; color:#64748b; font-weight:700;
+      font-size:0.82rem;
+    }
+    .dim-grid > div:nth-child(3n+2) { color:#cbd5e1; border-left:3px solid #3b82f6; }
+    .dim-grid > div:nth-child(3n+3) { color:#cbd5e1; border-left:3px solid #fbbf24; }
+    .dim-grid > div:nth-last-child(-n+3) { border-bottom:none; }
+
+    .dim-grid .head {
+      background:#0f172a !important; font-weight:700;
+      color:#e2e8f0 !important; font-size:0.85rem !important;
+    }
+    .dim-grid .head.d3 { color:#60a5fa !important; }
+    .dim-grid .head.ec { color:#fbbf24 !important; }
+
+    .winner {
+      display:inline-block;
+      background:#065f46; color:#34d399;
+      padding:1px 8px; border-radius:10px;
+      font-size:0.72rem; font-weight:700;
+      margin-left:6px; vertical-align:middle;
+    }
+    .winner.tie { background:#475569; color:#cbd5e1; }
+
+    /* 评分雷达模拟（用条形） */
+    .score-row {
+      display:grid; grid-template-columns:140px 1fr 1fr; gap:10px;
+      align-items:center; padding:8px 0;
+      border-bottom:1px solid #1e293b;
+    }
+    .score-row:last-child { border-bottom:none; }
+    .score-row .label { color:#94a3b8; font-size:0.85rem; }
+    .score-bar {
+      display:flex; align-items:center; gap:8px;
+    }
+    .score-bar .bar-bg {
+      flex:1; height:10px; background:#0f172a;
+      border-radius:6px; overflow:hidden; position:relative;
+    }
+    .score-bar .bar-fill {
+      height:100%; border-radius:6px;
+      transition:width 0.6s;
+    }
+    .score-bar.d3 .bar-fill { background:linear-gradient(90deg,#60a5fa,#3b82f6); }
+    .score-bar.ec .bar-fill { background:linear-gradient(90deg,#fbbf24,#f59e0b); }
+    .score-bar .score-val { font-size:0.78rem; color:#94a3b8; width:38px; text-align:right; }
+
+    /* 决策树 */
+    .decision-block {
+      background:#1e293b; border:1px solid #334155; border-radius:14px;
+      padding:24px 28px; margin-bottom:20px;
+    }
+    .decision-block h4 {
+      color:#e2e8f0; font-size:0.95rem; margin-bottom:14px;
+    }
+    .decision-row {
+      display:flex; align-items:center; gap:12px;
+      padding:10px 14px; background:#0f172a;
+      border-radius:8px; margin-bottom:8px;
+      font-size:0.86rem;
+    }
+    .decision-row .scenario {
+      flex:1; color:#cbd5e1;
+    }
+    .decision-row .pick {
+      flex-shrink:0; padding:3px 14px;
+      border-radius:14px; font-weight:700; font-size:0.78rem;
+    }
+    .pick.d3   { background:#1e3a5f; color:#60a5fa; }
+    .pick.ec   { background:#78350f; color:#fbbf24; }
+    .pick.both { background:#065f46; color:#34d399; }
+
+    /* 总结 */
+    .conclusion {
+      background:linear-gradient(135deg,#1e3a5f33,#78350f22);
+      border:1px solid #475569; border-radius:16px;
+      padding:28px; margin-top:8px;
+    }
+    .conclusion h2 { color:#e2e8f0; margin-bottom:14px; font-size:1.2rem; }
+    .conclusion p { color:#94a3b8; font-size:0.92rem; margin-bottom:10px; }
+    .conclusion .quote {
+      border-left:3px solid #f59e0b;
+      padding:8px 16px; background:#0f172a;
+      border-radius:0 8px 8px 0;
+      font-style:italic; color:#cbd5e1;
+      margin:14px 0;
+    }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <div class="page-title">D3.js vs ECharts 能力对比</div>
+  <p class="page-sub">从 8 个维度系统对比两大可视化技术的能力差异 · 帮你做出正确选型</p>
+
+  <!-- 头部 -->
+  <div class="vs-header">
+    <div class="vs-card left">
+      <h3>📐 D3.js</h3>
+      <p>Data-Driven Documents</p>
+      <p class="tagline">"底层绘图工具库 · 完全自由"</p>
+    </div>
+    <div class="vs-divider">VS</div>
+    <div class="vs-card right">
+      <h3>📊 ECharts</h3>
+      <p>百度开源图表库</p>
+      <p class="tagline">"高级图表库 · 开箱即用"</p>
+    </div>
+  </div>
+
+
+  <!-- 维度1：基础信息 -->
+  <div class="dim-section">
+    <div class="dim-title">
+      <div class="dim-icon" style="background:#1e3a5f;color:#60a5fa;">📋</div>
+      基础信息
+    </div>
+    <div class="dim-grid">
+      <div class="head">维度</div>
+      <div class="head d3">D3.js</div>
+      <div class="head ec">ECharts</div>
+
+      <div>诞生年份</div>
+      <div>2011 年（Mike Bostock）</div>
+      <div>2013 年（百度）</div>
+
+      <div>开源协议</div>
+      <div>ISC（极宽松）</div>
+      <div>Apache 2.0（顶级项目）</div>
+
+      <div>体积（gzip）</div>
+      <div>~50KB（核心 + 常用模块）</div>
+      <div>~330KB（完整版）</div>
+
+      <div>渲染方式</div>
+      <div>SVG（默认）/ Canvas（手动）</div>
+      <div>Canvas（默认）/ SVG（可切换）</div>
+
+      <div>编程范式</div>
+      <div>命令式：选择 → 操作 DOM</div>
+      <div>声明式：写配置对象</div>
+    </div>
+  </div>
+
+
+  <!-- 维度2：学习曲线 -->
+  <div class="dim-section">
+    <div class="dim-title">
+      <div class="dim-icon" style="background:#06463322;color:#34d399;">📚</div>
+      学习曲线
+    </div>
+    <div class="dim-grid">
+      <div class="head">维度</div>
+      <div class="head d3">D3.js</div>
+      <div class="head ec">ECharts <span class="winner">易上手</span></div>
+
+      <div>前置知识</div>
+      <div>SVG + JS ES6+ + 数学坐标系</div>
+      <div>HTML + 基础 JS（会写对象就行）</div>
+
+      <div>第一个柱状图</div>
+      <div>~60 行代码（手动创建 rect、计算位置）</div>
+      <div>~10 行代码（几个配置项）</div>
+
+      <div>从入门到实用</div>
+      <div>2–3 个月</div>
+      <div>1–2 周</div>
+
+      <div>常见难点</div>
+      <div>选择器、enter/update/exit、scale 概念</div>
+      <div>option 嵌套层级深、文档项太多</div>
+    </div>
+  </div>
+
+
+  <!-- 维度3：图表能力 -->
+  <div class="dim-section">
+    <div class="dim-title">
+      <div class="dim-icon" style="background:#78350f33;color:#fbbf24;">📈</div>
+      图表能力
+    </div>
+    <div class="dim-grid">
+      <div class="head">类型</div>
+      <div class="head d3">D3.js</div>
+      <div class="head ec">ECharts</div>
+
+      <div>常规图表（柱/折/饼/散）</div>
+      <div>需手动绘制 <span class="winner tie">够用</span></div>
+      <div>开箱即用 <span class="winner">推荐</span></div>
+
+      <div>统计图表（箱线/直方/热力）</div>
+      <div>需手动算分箱/五数概括</div>
+      <div>原生支持 <span class="winner">推荐</span></div>
+
+      <div>层级图表（Treemap/Sunburst）</div>
+      <div>d3-hierarchy 提供布局算法</div>
+      <div>原生支持 <span class="winner">推荐</span></div>
+
+      <div>关系图（Force/网络）</div>
+      <div>d3-force 物理引擎，效果最佳 <span class="winner">推荐</span></div>
+      <div>graph 类型，效果稍弱</div>
+
+      <div>地图（Geo/省市）</div>
+      <div>d3-geo 投影丰富，自由度高</div>
+      <div>地图组件 + 数据下钻 <span class="winner">推荐</span></div>
+
+      <div>特殊图表（弦图/桑基）</div>
+      <div>d3-chord/d3-sankey 专用算法 <span class="winner">推荐</span></div>
+      <div>sankey 支持，chord 不原生</div>
+
+      <div>非标准艺术化图形</div>
+      <div>无所不能 <span class="winner">推荐</span></div>
+      <div>需用 custom series 自定义</div>
+    </div>
+  </div>
+
+
+  <!-- 维度4：交互与动画 -->
+  <div class="dim-section">
+    <div class="dim-title">
+      <div class="dim-icon" style="background:#83144022;color:#f472b6;">✨</div>
+      交互与动画
+    </div>
+    <div class="dim-grid">
+      <div class="head">能力</div>
+      <div class="head d3">D3.js</div>
+      <div class="head ec">ECharts</div>
+
+      <div>基础交互（hover/click）</div>
+      <div>需手写事件 + tooltip</div>
+      <div>内置 tooltip/legend <span class="winner">推荐</span></div>
+
+      <div>过渡动画（属性插值）</div>
+      <div>.transition() 极强大 <span class="winner">推荐</span></div>
+      <div>setOption 自动过渡，可配但有限</div>
+
+      <div>缩放平移</div>
+      <div>d3-zoom，自由度高</div>
+      <div>dataZoom 组件 <span class="winner">推荐</span></div>
+
+      <div>框选过滤</div>
+      <div>d3-brush，配合 zoom 用</div>
+      <div>brush 组件，开箱即用 <span class="winner">推荐</span></div>
+
+      <div>复杂自定义动画</div>
+      <div>tween / 插值器，无所不能 <span class="winner">推荐</span></div>
+      <div>animationDuration/Easing，简单场景够用</div>
+
+      <div>Bar Chart Race 这类</div>
+      <div>原生支持，效果最佳 <span class="winner">推荐</span></div>
+      <div>5.x 加了 sort 动画但仍受限</div>
+    </div>
+  </div>
+
+
+  <!-- 维度5：性能 -->
+  <div class="dim-section">
+    <div class="dim-title">
+      <div class="dim-icon" style="background:#7c2d1222;color:#fb923c;">⚡</div>
+      性能
+    </div>
+    <div class="dim-grid">
+      <div class="head">数据量</div>
+      <div class="head d3">D3.js</div>
+      <div class="head ec">ECharts</div>
+
+      <div>1K 数据点</div>
+      <div>流畅（SVG）</div>
+      <div>流畅 <span class="winner tie">无差别</span></div>
+
+      <div>1 万数据点</div>
+      <div>SVG 开始卡顿，需手动切 Canvas</div>
+      <div>Canvas 渲染流畅 <span class="winner">推荐</span></div>
+
+      <div>10 万 + 数据点</div>
+      <div>需自己写 Canvas/WebGL 优化</div>
+      <div>large/sampling 内置优化 <span class="winner">推荐</span></div>
+
+      <div>百万级</div>
+      <div>需 d3 + WebGL 自研（regl）</div>
+      <div>echarts-gl 支持 WebGL <span class="winner">推荐</span></div>
+
+      <div>动画帧率</div>
+      <div>SVG 复杂动画 30–50fps</div>
+      <div>Canvas 60fps 稳定 <span class="winner">推荐</span></div>
+    </div>
+  </div>
+
+
+  <!-- 维度6：定制能力 -->
+  <div class="dim-section">
+    <div class="dim-title">
+      <div class="dim-icon" style="background:#4c1d9522;color:#a78bfa;">🎨</div>
+      定制与扩展
+    </div>
+    <div class="dim-grid">
+      <div class="head">维度</div>
+      <div class="head d3">D3.js</div>
+      <div class="head ec">ECharts</div>
+
+      <div>样式自由度</div>
+      <div>每个像素都能控制 <span class="winner">推荐</span></div>
+      <div>主题 + itemStyle，覆盖大多数需求</div>
+
+      <div>非标准图形</div>
+      <div>本质就是绘制工具，无限可能 <span class="winner">推荐</span></div>
+      <div>需用 custom series + renderItem</div>
+
+      <div>主题切换</div>
+      <div>需自己实现</div>
+      <div>内置主题机制，Theme Builder <span class="winner">推荐</span></div>
+
+      <div>响应式</div>
+      <div>需手动监听 resize 重绘</div>
+      <div>chart.resize() 一行 <span class="winner">推荐</span></div>
+
+      <div>无障碍（ARIA）</div>
+      <div>需自己加 aria-label</div>
+      <div>aria 模块自动生成 <span class="winner">推荐</span></div>
+    </div>
+  </div>
+
+
+  <!-- 维度7：工程化 -->
+  <div class="dim-section">
+    <div class="dim-title">
+      <div class="dim-icon" style="background:#1d4ed822;color:#60a5fa;">🛠️</div>
+      工程化与生态
+    </div>
+    <div class="dim-grid">
+      <div class="head">维度</div>
+      <div class="head d3">D3.js</div>
+      <div class="head ec">ECharts</div>
+
+      <div>TypeScript 支持</div>
+      <div>有 @types/d3，类型分散较弱</div>
+      <div>官方 .d.ts 完整 <span class="winner">推荐</span></div>
+
+      <div>React 集成</div>
+      <div>需自己处理虚拟 DOM 与 D3 冲突</div>
+      <div>echarts-for-react 官方维护 <span class="winner">推荐</span></div>
+
+      <div>Vue 集成</div>
+      <div>第三方包（vue-d3）</div>
+      <div>vue-echarts 官方 <span class="winner">推荐</span></div>
+
+      <div>按需引入（tree-shaking）</div>
+      <div>原生支持 <span class="winner">推荐</span></div>
+      <div>需手动注册组件 echarts/core</div>
+
+      <div>导出 PNG/PDF</div>
+      <div>需自己实现 svg2canvas</div>
+      <div>getDataURL 一行 <span class="winner">推荐</span></div>
+
+      <div>中文文档</div>
+      <div>第三方翻译，常滞后</div>
+      <div>官方中文，与英文同步 <span class="winner">推荐</span></div>
+
+      <div>社区示例</div>
+      <div>Observable 海量精品 <span class="winner">推荐</span></div>
+      <div>官方示例库 + 中文社区</div>
+    </div>
+  </div>
+
+
+  <!-- 综合评分 -->
+  <div class="dim-section">
+    <div class="dim-title">
+      <div class="dim-icon" style="background:#065f4622;color:#34d399;">⚖️</div>
+      综合评分（满分 10）
+    </div>
+    <div id="scores"></div>
+  </div>
+
+
+  <!-- 决策建议 -->
+  <div class="decision-block">
+    <h4>🎯 选型决策：什么场景该用哪个？</h4>
+    <div class="decision-row">
+      <div class="scenario"><strong style="color:#e2e8f0;">业务报表/管理后台</strong>　常规图表 + 标准交互</div>
+      <div class="pick ec">ECharts</div>
+    </div>
+    <div class="decision-row">
+      <div class="scenario"><strong style="color:#e2e8f0;">数据大屏</strong>　多图组合 + 自动适配</div>
+      <div class="pick ec">ECharts</div>
+    </div>
+    <div class="decision-row">
+      <div class="scenario"><strong style="color:#e2e8f0;">大数据点散点/折线</strong>　1 万 + 数据</div>
+      <div class="pick ec">ECharts</div>
+    </div>
+    <div class="decision-row">
+      <div class="scenario"><strong style="color:#e2e8f0;">时间紧/团队不熟</strong>　快速出活</div>
+      <div class="pick ec">ECharts</div>
+    </div>
+    <div class="decision-row">
+      <div class="scenario"><strong style="color:#e2e8f0;">力导向/网络关系图</strong>　节点交互复杂</div>
+      <div class="pick d3">D3.js</div>
+    </div>
+    <div class="decision-row">
+      <div class="scenario"><strong style="color:#e2e8f0;">非标准艺术化可视化</strong>　数据新闻、信息图</div>
+      <div class="pick d3">D3.js</div>
+    </div>
+    <div class="decision-row">
+      <div class="scenario"><strong style="color:#e2e8f0;">复杂自定义动画</strong>　Bar Chart Race 等</div>
+      <div class="pick d3">D3.js</div>
+    </div>
+    <div class="decision-row">
+      <div class="scenario"><strong style="color:#e2e8f0;">需要 100% 像素级控制</strong>　设计师/品牌强约束</div>
+      <div class="pick d3">D3.js</div>
+    </div>
+    <div class="decision-row">
+      <div class="scenario"><strong style="color:#e2e8f0;">大型项目（21+ 图表）</strong>　主流图表 + 个别特殊</div>
+      <div class="pick both">混合使用</div>
+    </div>
+  </div>
+
+
+  <!-- 结论 -->
+  <div class="conclusion">
+    <h2>💡 一句话总结</h2>
+    <div class="quote">
+      "D3 是<strong style="color:#60a5fa;">画笔</strong>，ECharts 是<strong style="color:#fbbf24;">模板</strong>。
+      画笔无所不能但需要美术功底，模板拿来就用但样式有限。"
+    </div>
+    <p><strong style="color:#e2e8f0;">如果你只能选一个学：</strong>从 ECharts 开始。门槛低、出活快、覆盖 95% 的业务场景，足以应对大多数工作。</p>
+    <p><strong style="color:#e2e8f0;">如果想成为可视化专家：</strong>两个都要会。D3 让你理解可视化的底层原理，ECharts 让你高效完成日常工作。</p>
+    <p><strong style="color:#e2e8f0;">本课程项目的实践：</strong>21 种图表中 20 种用 ECharts，弦图（chord）用 D3.js——这就是工业界最常见的<strong style="color:#34d399;">"主用 ECharts，特殊场景补 D3"</strong>策略。</p>
+  </div>
+
+</div>
+
+<script>
+const scoreData = [
+  { name:'易学性',          d3:5, ec:9 },
+  { name:'图表丰富度',      d3:7, ec:9 },
+  { name:'定制自由度',      d3:10, ec:6 },
+  { name:'动画能力',        d3:10, ec:7 },
+  { name:'大数据性能',      d3:6, ec:9 },
+  { name:'工程化体验',      d3:7, ec:9 },
+  { name:'文档与示例',      d3:8, ec:9 },
+  { name:'社区活跃度',      d3:9, ec:8 },
+  { name:'非标图形能力',    d3:10, ec:5 },
+  { name:'适合业务报表',    d3:5, ec:10 },
+]
+const container = document.getElementById('scores')
+scoreData.forEach(item => {
+  const row = document.createElement('div')
+  row.className = 'score-row'
+  row.innerHTML = `
+    <div class="label">${item.name}</div>
+    <div class="score-bar d3">
+      <div class="bar-bg"><div class="bar-fill" style="width:${item.d3*10}%"></div></div>
+      <div class="score-val">${item.d3}/10</div>
+    </div>
+    <div class="score-bar ec">
+      <div class="bar-bg"><div class="bar-fill" style="width:${item.ec*10}%"></div></div>
+      <div class="score-val">${item.ec}/10</div>
+    </div>
+  `
+  container.appendChild(row)
+})
+</script>
+</body>
+</html>

@@ -1,0 +1,606 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>D3.js 核心教程</title>
+  <style>
+    :root {
+      --bg: #0f172a; --card: #1e293b; --border: #334155;
+      --blue: #3b82f6; --green: #10b981; --yellow: #f59e0b;
+      --purple: #8b5cf6; --pink: #ec4899; --orange: #f97316;
+      --text: #e2e8f0; --muted: #64748b; --code-bg: #0f172a;
+    }
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: var(--bg);
+      font-family: "PingFang SC","Microsoft YaHei",sans-serif;
+      color: var(--text);
+      padding: 32px 16px 60px;
+      line-height: 1.7;
+    }
+    .container { max-width: 860px; margin: 0 auto; }
+
+    /* 标题 */
+    .page-title { font-size: 1.8rem; font-weight: 900; color: #93c5fd; letter-spacing: 2px; }
+    .page-sub   { color: var(--muted); font-size: 0.9rem; margin: 6px 0 36px; }
+
+    /* 目录 */
+    .toc {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 12px; padding: 18px 24px; margin-bottom: 36px;
+    }
+    .toc h3 { font-size: 0.9rem; color: var(--muted); margin-bottom: 10px; letter-spacing: 1px; }
+    .toc a  { display: inline-block; margin: 3px 10px 3px 0; font-size: 0.85rem;
+              color: var(--blue); text-decoration: none; }
+    .toc a:hover { text-decoration: underline; }
+
+    /* 章节卡片 */
+    .section {
+      background: var(--card); border: 1px solid var(--border);
+      border-radius: 16px; padding: 28px 28px 24px;
+      margin-bottom: 28px;
+    }
+    .section-header {
+      display: flex; align-items: center; gap: 12px; margin-bottom: 14px;
+    }
+    .section-num {
+      width: 32px; height: 32px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 900; font-size: 0.85rem; flex-shrink: 0;
+    }
+    .section h2 { font-size: 1.15rem; color: #e2e8f0; }
+    .section p  { color: #94a3b8; font-size: 0.92rem; margin-bottom: 12px; }
+    .section p strong { color: #e2e8f0; }
+
+    /* 代码块 */
+    pre {
+      background: var(--code-bg); border: 1px solid var(--border);
+      border-radius: 8px; padding: 14px 16px; margin: 12px 0;
+      font-size: 0.8rem; overflow-x: auto; line-height: 1.6;
+    }
+    .kw  { color: #818cf8; }  /* keyword */
+    .fn  { color: #34d399; }  /* function */
+    .str { color: #fbbf24; }  /* string */
+    .cm  { color: #475569; font-style: italic; } /* comment */
+    .num { color: #f97316; }  /* number */
+
+    /* Demo 区 */
+    .demo-area {
+      background: #0f172a; border: 1px dashed var(--border);
+      border-radius: 10px; padding: 18px; margin-top: 14px;
+      min-height: 80px;
+    }
+    .demo-area svg { display: block; }
+
+    /* 按钮 */
+    button.run-btn {
+      margin-top: 10px; padding: 7px 20px;
+      background: #1e3a5f; border: 1px solid var(--blue);
+      color: #93c5fd; border-radius: 8px; cursor: pointer;
+      font-size: 13px; transition: background 0.15s;
+    }
+    button.run-btn:hover { background: var(--blue); color: #fff; }
+
+    /* 要点提示 */
+    .tip {
+      display: flex; gap: 10px; align-items: flex-start;
+      background: #1e3a5f22; border-left: 3px solid var(--blue);
+      border-radius: 0 8px 8px 0; padding: 10px 14px;
+      margin-top: 12px; font-size: 0.85rem; color: #94a3b8;
+    }
+    .tip .icon { font-size: 1rem; flex-shrink: 0; margin-top: 1px; }
+
+    /* 总结 */
+    .summary {
+      background: linear-gradient(135deg,#1e3a5f,#1e293b);
+      border: 1px solid var(--blue); border-radius: 16px;
+      padding: 28px; margin-top: 8px;
+    }
+    .summary h2 { color: #93c5fd; margin-bottom: 16px; }
+    .summary table { width: 100%; border-collapse: collapse; font-size: 0.88rem; }
+    .summary th { text-align: left; color: var(--muted); font-weight: 600;
+                  padding: 6px 12px; border-bottom: 1px solid var(--border); }
+    .summary td { padding: 8px 12px; border-bottom: 1px solid #1e293b; color: #94a3b8; }
+    .summary td:first-child { color: #34d399; font-family: monospace; }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <div class="page-title">D3.js 核心教程</div>
+  <p class="page-sub">6 个核心概念 · 每个概念配实时可运行 Demo · 从零理解 D3 的思维方式</p>
+
+  <!-- 目录 -->
+  <div class="toc">
+    <h3>📋 目录</h3>
+    <a href="#s1">① 选择与操作</a>
+    <a href="#s2">② 数据绑定</a>
+    <a href="#s3">③ 比例尺</a>
+    <a href="#s4">④ 坐标轴</a>
+    <a href="#s5">⑤ 过渡动画</a>
+    <a href="#s6">⑥ 事件交互</a>
+    <a href="#s7">⑦ 学习路径</a>
+    <a href="#summary">⑧ 总结速查</a>
+  </div>
+
+
+  <!-- ① 选择与操作 -->
+  <div class="section" id="s1">
+    <div class="section-header">
+      <div class="section-num" style="background:#1d4ed822;color:#60a5fa;">01</div>
+      <h2>选择与操作 DOM —— <code>d3.select</code></h2>
+    </div>
+    <p>D3 最基础的操作：<strong>选中元素，然后修改它的属性或样式</strong>。和 jQuery 很像，但专门为 SVG 设计。</p>
+    <pre><span class="fn">d3</span>.<span class="fn">select</span>(<span class="str">'#box'</span>)           <span class="cm">// 选中单个元素（CSS 选择器）</span>
+   .<span class="fn">attr</span>(<span class="str">'fill'</span>, <span class="str">'#3b82f6'</span>)  <span class="cm">// 设置 SVG 属性</span>
+   .<span class="fn">style</span>(<span class="str">'opacity'</span>, <span class="num">0.8</span>)   <span class="cm">// 设置 CSS 样式</span>
+   .<span class="fn">text</span>(<span class="str">'Hello D3'</span>)         <span class="cm">// 设置文本内容</span>
+
+<span class="fn">d3</span>.<span class="fn">selectAll</span>(<span class="str">'circle'</span>)      <span class="cm">// 选中所有匹配元素</span>
+   .<span class="fn">attr</span>(<span class="str">'r'</span>, <span class="num">20</span>)</pre>
+    <div class="demo-area">
+      <svg id="demo1" width="100%" height="70">
+        <rect id="d1-box" x="20" y="15" width="120" height="40" rx="6" fill="#334155" />
+        <text id="d1-text" x="80" y="40" text-anchor="middle" fill="#64748b" font-size="14">点击按钮</text>
+      </svg>
+    </div>
+    <button class="run-btn" onclick="runDemo1()">▶ 运行：改变颜色和文字</button>
+    <div class="tip"><span class="icon">💡</span><span><strong>核心思维</strong>：D3 = 选中元素 → 链式修改属性。<code>.attr()</code> 用于 SVG 属性（fill/cx/r），<code>.style()</code> 用于 CSS 属性（color/opacity）。</span></div>
+  </div>
+
+
+  <!-- ② 数据绑定 -->
+  <div class="section" id="s2">
+    <div class="section-header">
+      <div class="section-num" style="background:#06464622;color:#34d399;">02</div>
+      <h2>数据绑定 —— <code>.data().join()</code></h2>
+    </div>
+    <p>D3 最核心的思想：<strong>把数据数组绑定到 DOM 元素上</strong>，数据有多少条，就自动创建多少个元素。</p>
+    <pre><span class="kw">const</span> data = [<span class="num">30</span>, <span class="num">70</span>, <span class="num">50</span>, <span class="num">90</span>, <span class="num">40</span>]
+
+svg.<span class="fn">selectAll</span>(<span class="str">'circle'</span>)
+   .<span class="fn">data</span>(data)          <span class="cm">// 绑定数据</span>
+   .<span class="fn">join</span>(<span class="str">'circle'</span>)      <span class="cm">// 不够就创建，多余就删除</span>
+   .<span class="fn">attr</span>(<span class="str">'cx'</span>, (<span class="kw">d</span>, <span class="kw">i</span>) => i * <span class="num">60</span> + <span class="num">40</span>)  <span class="cm">// d=数据值, i=索引</span>
+   .<span class="fn">attr</span>(<span class="str">'cy'</span>, <span class="num">40</span>)
+   .<span class="fn">attr</span>(<span class="str">'r'</span>,  <span class="kw">d</span> => d / <span class="num">5</span>)            <span class="cm">// 半径 = 数据值 / 5</span>
+   .<span class="fn">attr</span>(<span class="str">'fill'</span>, <span class="str">'#3b82f6'</span>)</pre>
+    <div class="demo-area">
+      <svg id="demo2" width="100%" height="80"></svg>
+    </div>
+    <button class="run-btn" onclick="runDemo2()">▶ 运行：用数据绘制圆</button>
+    <div class="tip"><span class="icon">💡</span><span><strong>核心思维</strong>：属性值可以是<strong>函数</strong> <code>(d, i) =&gt;</code>，<code>d</code> 是该元素绑定的数据值，<code>i</code> 是索引——这是 D3 和普通 DOM 操作最大的区别。</span></div>
+  </div>
+
+
+  <!-- ③ 比例尺 -->
+  <div class="section" id="s3">
+    <div class="section-header">
+      <div class="section-num" style="background:#78350f22;color:#fbbf24;">03</div>
+      <h2>比例尺 —— <code>d3.scaleLinear</code></h2>
+    </div>
+    <p>比例尺是一个<strong>映射函数</strong>：把数据范围（domain）映射到像素范围（range）。有了它，不用手算坐标。</p>
+    <pre><span class="cm">// 线性比例尺：数据 0~100 → 像素 0~400</span>
+<span class="kw">const</span> xScale = <span class="fn">d3</span>.<span class="fn">scaleLinear</span>()
+  .<span class="fn">domain</span>([<span class="num">0</span>, <span class="num">100</span>])   <span class="cm">// 输入范围（数据）</span>
+  .<span class="fn">range</span>([<span class="num">0</span>, <span class="num">400</span>])   <span class="cm">// 输出范围（像素）</span>
+
+xScale(<span class="num">50</span>)  <span class="cm">// → 200  （50% 位置）</span>
+xScale(<span class="num">25</span>)  <span class="cm">// → 100</span>
+
+<span class="cm">// 分类比例尺：文字 → 像素位置（做柱状图）</span>
+<span class="kw">const</span> yScale = <span class="fn">d3</span>.<span class="fn">scaleBand</span>()
+  .<span class="fn">domain</span>([<span class="str">'A'</span>,<span class="str">'B'</span>,<span class="str">'C'</span>])
+  .<span class="fn">range</span>([<span class="num">0</span>, <span class="num">300</span>])
+  .<span class="fn">padding</span>(<span class="num">0.2</span>)</pre>
+    <div class="demo-area">
+      <svg id="demo3" width="100%" height="130"></svg>
+    </div>
+    <button class="run-btn" onclick="runDemo3()">▶ 运行：用比例尺绘制条形图</button>
+    <div class="tip"><span class="icon">💡</span><span><strong>常用比例尺</strong>：<code>scaleLinear</code>（数值→数值）、<code>scaleBand</code>（分类→位置，做柱状图）、<code>scaleOrdinal</code>（分类→颜色）、<code>scaleLog</code>（对数）。</span></div>
+  </div>
+
+
+  <!-- ④ 坐标轴 -->
+  <div class="section" id="s4">
+    <div class="section-header">
+      <div class="section-num" style="background:#4c1d9522;color:#a78bfa;">04</div>
+      <h2>坐标轴 —— <code>d3.axisBottom</code></h2>
+    </div>
+    <p>D3 能根据比例尺<strong>自动生成坐标轴</strong>（刻度线 + 刻度值），不需要手动算每个刻度的位置。</p>
+    <pre><span class="kw">const</span> xAxis = <span class="fn">d3</span>.<span class="fn">axisBottom</span>(xScale)  <span class="cm">// 底部 X 轴</span>
+  .<span class="fn">ticks</span>(<span class="num">5</span>)                          <span class="cm">// 约 5 个刻度</span>
+  .<span class="fn">tickFormat</span>(<span class="kw">d</span> => d + <span class="str">'%'</span>)          <span class="cm">// 刻度格式化</span>
+
+<span class="cm">// 在 g 元素上"调用"轴，D3 自动画出来</span>
+svg.<span class="fn">append</span>(<span class="str">'g'</span>)
+   .<span class="fn">attr</span>(<span class="str">'transform'</span>, <span class="str">'translate(0, 100)'</span>)
+   .<span class="fn">call</span>(xAxis)  <span class="cm">// ← call() 是关键！把 g 元素传给轴函数</span>
+
+<span class="cm">// 还有 axisLeft / axisRight / axisTop</span></pre>
+    <div class="demo-area">
+      <svg id="demo4" width="100%" height="70"></svg>
+    </div>
+    <button class="run-btn" onclick="runDemo4()">▶ 运行：生成坐标轴</button>
+    <div class="tip"><span class="icon">💡</span><span><code>.call(axis)</code> 是 D3 特有用法，等价于 <code>axis(selection)</code>。坐标轴样式（颜色/字体）通过 CSS 或 <code>.selectAll('.tick text').style(...)</code> 来改。</span></div>
+  </div>
+
+
+  <!-- ⑤ 过渡动画 -->
+  <div class="section" id="s5">
+    <div class="section-header">
+      <div class="section-num" style="background:#83144022;color:#f472b6;">05</div>
+      <h2>过渡动画 —— <code>.transition()</code></h2>
+    </div>
+    <p>在属性修改前加 <code>.transition()</code>，D3 会自动<strong>在旧值和新值之间做插值动画</strong>，一行代码实现流畅过渡。</p>
+    <pre><span class="cm">// 没有动画（瞬间跳变）</span>
+bar.<span class="fn">attr</span>(<span class="str">'width'</span>, <span class="num">300</span>)
+
+<span class="cm">// 加上动画（800ms 缓动过渡）</span>
+bar.<span class="fn">transition</span>()
+   .<span class="fn">duration</span>(<span class="num">800</span>)               <span class="cm">// 动画时长（毫秒）</span>
+   .<span class="fn">ease</span>(<span class="fn">d3</span>.<span class="fn">easeCubicInOut</span>)    <span class="cm">// 缓动函数（默认 easeCubic）</span>
+   .<span class="fn">attr</span>(<span class="str">'width'</span>, <span class="num">300</span>)           <span class="cm">// 目标值</span>
+   .<span class="fn">attr</span>(<span class="str">'fill'</span>, <span class="str">'#10b981'</span>)      <span class="cm">// 颜色也可以插值！</span></pre>
+    <div class="demo-area">
+      <svg id="demo5" width="100%" height="80">
+        <rect id="d5-bar" x="20" y="20" width="60" height="36" rx="6" fill="#3b82f6"/>
+        <text id="d5-label" x="90" y="42" fill="#64748b" font-size="12">← 点击看动画</text>
+      </svg>
+    </div>
+    <button class="run-btn" onclick="runDemo5()">▶ 运行：宽度 + 颜色动画</button>
+    <div class="tip"><span class="icon">💡</span><span><strong>D3 会自动插值</strong>数字、颜色、路径（path d 属性），这是 Bar Chart Race 等复杂动画的基础。缓动函数可选：<code>easeLinear</code> / <code>easeBounce</code> / <code>easeElastic</code> 等。</span></div>
+  </div>
+
+
+  <!-- ⑥ 事件交互 -->
+  <div class="section" id="s6">
+    <div class="section-header">
+      <div class="section-num" style="background:#7c2d1222;color:#fb923c;">06</div>
+      <h2>事件交互 —— <code>.on()</code></h2>
+    </div>
+    <p>用 <code>.on(事件名, 回调)</code> 给元素绑定交互，回调参数 <code>(event, d)</code> 中 <code>d</code> 是该元素绑定的<strong>数据值</strong>，可直接用。</p>
+    <pre>bars.<span class="fn">on</span>(<span class="str">'mouseover'</span>, (event, <span class="kw">d</span>) => {
+  <span class="cm">// d = 这根柱子绑定的数据</span>
+  tooltip.<span class="fn">style</span>(<span class="str">'opacity'</span>, <span class="num">1</span>).<span class="fn">text</span>(<span class="str">'值：'</span> + <span class="kw">d</span>)
+})
+.<span class="fn">on</span>(<span class="str">'mouseleave'</span>, () => {
+  tooltip.<span class="fn">style</span>(<span class="str">'opacity'</span>, <span class="num">0</span>)
+})
+.<span class="fn">on</span>(<span class="str">'click'</span>, (event, <span class="kw">d</span>) => {
+  <span class="fn">d3</span>.<span class="fn">select</span>(event.currentTarget)
+    .<span class="fn">transition</span>().<span class="fn">duration</span>(<span class="num">300</span>)
+    .<span class="fn">attr</span>(<span class="str">'fill'</span>, <span class="str">'#f97316'</span>)
+})</pre>
+    <div class="demo-area">
+      <svg id="demo6" width="100%" height="90"></svg>
+    </div>
+    <p style="font-size:12px;color:#475569;margin-top:8px;">👆 悬停或点击柱子试试</p>
+    <div class="tip"><span class="icon">💡</span><span>事件回调里 <code>event.currentTarget</code> 是触发事件的 DOM 元素，<code>d3.select(event.currentTarget)</code> 可以立刻修改它。这是 D3 交互最常见的写法。</span></div>
+  </div>
+
+
+  <!-- ⑦ 学习路径 -->
+  <div class="section" id="s7">
+    <div class="section-header">
+      <div class="section-num" style="background:#05462222;color:#34d399;">07</div>
+      <h2>掌握 D3.js 的学习路径与技术栈</h2>
+    </div>
+    <p>D3 不是孤立的工具，它建立在一系列基础技术之上。下面是从零到能独立开发可视化作品的完整路径。</p>
+
+    <!-- 阶段路径 -->
+    <div style="margin: 16px 0 8px; display:flex; flex-direction:column; gap:12px;">
+
+      <!-- 阶段1 -->
+      <div style="border:1px solid #1e3a5f; border-left:4px solid #3b82f6; border-radius:8px; padding:14px 18px;">
+        <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+          <span style="background:#1d4ed8;color:#fff;border-radius:20px;padding:2px 12px;font-size:12px;font-weight:700;">阶段一</span>
+          <span style="color:#93c5fd;font-weight:700;">基础前置（必须先掌握）</span>
+          <span style="margin-left:auto;font-size:12px;color:#64748b;">建议时长：2–4 周</span>
+        </div>
+        <table style="width:100%;border-collapse:collapse;font-size:0.85rem;">
+          <tr style="border-bottom:1px solid #1e3a5f;">
+            <th style="text-align:left;padding:5px 10px;color:#64748b;width:140px;">技术</th>
+            <th style="text-align:left;padding:5px 10px;color:#64748b;">需要掌握到什么程度</th>
+          </tr>
+          <tr style="border-bottom:1px solid #1e293b;">
+            <td style="padding:6px 10px;color:#fbbf24;">HTML / SVG</td>
+            <td style="padding:6px 10px;color:#94a3b8;">理解 SVG 基本标签：<code style="color:#34d399;">rect / circle / line / path / text / g</code>，知道坐标系原点在左上角，会写基本 SVG 结构即可</td>
+          </tr>
+          <tr style="border-bottom:1px solid #1e293b;">
+            <td style="padding:6px 10px;color:#fbbf24;">CSS</td>
+            <td style="padding:6px 10px;color:#94a3b8;">能写布局、会改 SVG 颜色/字体/透明度，不需要精通动画（D3 自己管动画）</td>
+          </tr>
+          <tr>
+            <td style="padding:6px 10px;color:#fbbf24;">JavaScript（ES6+）</td>
+            <td style="padding:6px 10px;color:#94a3b8;">必须熟练：<strong style="color:#e2e8f0;">数组方法</strong>（map / filter / reduce）、<strong style="color:#e2e8f0;">箭头函数</strong>、<strong style="color:#e2e8f0;">解构赋值</strong>、<strong style="color:#e2e8f0;">Promise/fetch</strong>（加载数据用）。DOM 操作了解即可，D3 会替你做</td>
+          </tr>
+        </table>
+      </div>
+
+      <!-- 阶段2 -->
+      <div style="border:1px solid #1e3a5f; border-left:4px solid #10b981; border-radius:8px; padding:14px 18px;">
+        <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+          <span style="background:#065f46;color:#34d399;border-radius:20px;padding:2px 12px;font-size:12px;font-weight:700;">阶段二</span>
+          <span style="color:#34d399;font-weight:700;">D3 核心入门（能画出基础图表）</span>
+          <span style="margin-left:auto;font-size:12px;color:#64748b;">建议时长：3–5 周</span>
+        </div>
+        <table style="width:100%;border-collapse:collapse;font-size:0.85rem;">
+          <tr style="border-bottom:1px solid #1e3a5f;">
+            <th style="text-align:left;padding:5px 10px;color:#64748b;width:140px;">模块</th>
+            <th style="text-align:left;padding:5px 10px;color:#64748b;">需要掌握到什么程度</th>
+          </tr>
+          <tr style="border-bottom:1px solid #1e293b;">
+            <td style="padding:6px 10px;color:#fbbf24;">选择 & 绑定</td>
+            <td style="padding:6px 10px;color:#94a3b8;">能用 <code style="color:#34d399;">.data().join()</code> 驱动元素创建/更新/删除，理解 enter/update/exit 三态</td>
+          </tr>
+          <tr style="border-bottom:1px solid #1e293b;">
+            <td style="padding:6px 10px;color:#fbbf24;">比例尺</td>
+            <td style="padding:6px 10px;color:#94a3b8;">会用 <code style="color:#34d399;">scaleLinear / scaleBand / scaleOrdinal / scaleTime</code>，知道 domain/range 是什么</td>
+          </tr>
+          <tr style="border-bottom:1px solid #1e293b;">
+            <td style="padding:6px 10px;color:#fbbf24;">坐标轴</td>
+            <td style="padding:6px 10px;color:#94a3b8;">会生成 X/Y 轴，会自定义刻度格式和样式</td>
+          </tr>
+          <tr style="border-bottom:1px solid #1e293b;">
+            <td style="padding:6px 10px;color:#fbbf24;">过渡动画</td>
+            <td style="padding:6px 10px;color:#94a3b8;">会用 <code style="color:#34d399;">.transition().duration().ease()</code>，知道 delay/stagger 错峰动画</td>
+          </tr>
+          <tr>
+            <td style="padding:6px 10px;color:#fbbf24;">事件交互</td>
+            <td style="padding:6px 10px;color:#94a3b8;">会做 hover tooltip、click 高亮，理解回调里 <code style="color:#34d399;">(event, d)</code> 的含义</td>
+          </tr>
+        </table>
+        <div style="margin-top:10px;font-size:12px;color:#475569;">✅ 完成阶段二 = 能独立画出：柱状图、折线图、散点图、饼图</div>
+      </div>
+
+      <!-- 阶段3 -->
+      <div style="border:1px solid #1e3a5f; border-left:4px solid #f59e0b; border-radius:8px; padding:14px 18px;">
+        <div style="display:flex; align-items:center; gap:8px; margin-bottom:8px;">
+          <span style="background:#78350f;color:#fbbf24;border-radius:20px;padding:2px 12px;font-size:12px;font-weight:700;">阶段三</span>
+          <span style="color:#fbbf24;font-weight:700;">进阶技术栈（能做复杂/定制可视化）</span>
+          <span style="margin-left:auto;font-size:12px;color:#64748b;">按需学习</span>
+        </div>
+        <table style="width:100%;border-collapse:collapse;font-size:0.85rem;">
+          <tr style="border-bottom:1px solid #1e3a5f;">
+            <th style="text-align:left;padding:5px 10px;color:#64748b;width:140px;">技术/模块</th>
+            <th style="text-align:left;padding:5px 10px;color:#64748b;">需要掌握到什么程度</th>
+          </tr>
+          <tr style="border-bottom:1px solid #1e293b;">
+            <td style="padding:6px 10px;color:#fbbf24;">d3-zoom & brush</td>
+            <td style="padding:6px 10px;color:#94a3b8;">实现缩放平移、框选过滤，大数据集必用</td>
+          </tr>
+          <tr style="border-bottom:1px solid #1e293b;">
+            <td style="padding:6px 10px;color:#fbbf24;">d3-force</td>
+            <td style="padding:6px 10px;color:#94a3b8;">力导向图/网络关系图，掌握各种力（charge/link/collide/center）的调参</td>
+          </tr>
+          <tr style="border-bottom:1px solid #1e293b;">
+            <td style="padding:6px 10px;color:#fbbf24;">d3-geo（地图）</td>
+            <td style="padding:6px 10px;color:#94a3b8;">了解投影（projection）、GeoJSON 格式，能画世界地图/省级地图</td>
+          </tr>
+          <tr style="border-bottom:1px solid #1e293b;">
+            <td style="padding:6px 10px;color:#fbbf24;">d3-chord / d3-hierarchy</td>
+            <td style="padding:6px 10px;color:#94a3b8;">弦图、树图、旭日图等特殊图表的专用布局算法</td>
+          </tr>
+          <tr style="border-bottom:1px solid #1e293b;">
+            <td style="padding:6px 10px;color:#fbbf24;">Canvas / WebGL</td>
+            <td style="padding:6px 10px;color:#94a3b8;">10 万+ 数据点时 SVG 卡顿，需切换到 Canvas；WebGL（regl/Three.js）用于百万级</td>
+          </tr>
+          <tr>
+            <td style="padding:6px 10px;color:#fbbf24;">React/Vue + D3</td>
+            <td style="padding:6px 10px;color:#94a3b8;">工程项目中 D3 管数据计算、React/Vue 管 DOM，知道两者如何分工协作</td>
+          </tr>
+        </table>
+      </div>
+
+      <!-- 推荐资源 -->
+      <div style="border:1px solid #334155; border-radius:8px; padding:14px 18px; background:#0f172a;">
+        <div style="font-size:0.9rem; font-weight:700; color:#94a3b8; margin-bottom:10px;">📚 推荐学习资源</div>
+        <div style="display:grid; grid-template-columns: 1fr 1fr; gap:8px; font-size:0.83rem;">
+          <div style="color:#64748b;">📖 <a href="https://d3js.org" target="_blank" rel="noopener" style="color:#3b82f6;">d3js.org</a> — 官方文档（英文，权威）</div>
+          <div style="color:#64748b;">📖 <a href="https://observablehq.com/@d3" target="_blank" rel="noopener" style="color:#3b82f6;">Observable @d3</a> — 官方交互式示例库</div>
+          <div style="color:#64748b;">📖 <strong style="color:#e2e8f0;">《Interactive Data Visualization for the Web》</strong> — Scott Murray 著，D3 最佳入门书</div>
+          <div style="color:#64748b;">📖 <a href="https://github.com/d3/d3/blob/main/API.md" target="_blank" rel="noopener" style="color:#3b82f6;">D3 API 参考</a> — 完整模块列表</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- 总结 -->
+  <div class="summary" id="summary">
+    <h2>⚡ 核心 API 速查表</h2>
+    <table>
+      <tr><th>API</th><th>作用</th><th>类比</th></tr>
+      <tr><td>d3.select / selectAll</td><td>选中 DOM 元素</td><td>jQuery $()</td></tr>
+      <tr><td>.attr() / .style()</td><td>修改属性 / CSS</td><td>element.setAttribute</td></tr>
+      <tr><td>.data().join()</td><td>数据绑定 → 自动创建/删除元素</td><td>React map() 渲染列表</td></tr>
+      <tr><td>d3.scaleLinear</td><td>数据值 → 像素值</td><td>比例换算</td></tr>
+      <tr><td>d3.scaleBand</td><td>分类 → 像素位置（柱状图）</td><td>等分坐标</td></tr>
+      <tr><td>d3.axisBottom/Left</td><td>自动生成坐标轴</td><td>—</td></tr>
+      <tr><td>.transition().duration()</td><td>属性变化加动画</td><td>CSS transition</td></tr>
+      <tr><td>.on(事件, 回调)</td><td>事件监听，回调拿到数据 d</td><td>addEventListener</td></tr>
+    </table>
+  </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+<script>
+// ── Demo 1：选择与操作 ──────────────────────────────────────
+let d1toggle = false
+function runDemo1() {
+  d1toggle = !d1toggle
+  d3.select('#d1-box')
+    .transition().duration(500)
+    .attr('fill', d1toggle ? '#3b82f6' : '#334155')
+  d3.select('#d1-text')
+    .transition().duration(500)
+    .attr('fill', d1toggle ? '#fff' : '#64748b')
+    .text(d1toggle ? '✔ D3 改变了我！' : '点击按钮')
+}
+
+// ── Demo 2：数据绑定 ────────────────────────────────────────
+const data2 = [30, 70, 50, 90, 40, 65, 80]
+const colors2 = ['#3b82f6','#10b981','#f59e0b','#8b5cf6','#ec4899','#14b8a6','#f97316']
+function runDemo2() {
+  const svg = d3.select('#demo2')
+  const W = svg.node().clientWidth
+  svg.selectAll('*').remove()
+  svg.selectAll('circle')
+    .data(data2)
+    .join('circle')
+    .attr('cx', (d, i) => (i + 0.5) * (W / data2.length))
+    .attr('cy', 40)
+    .attr('r', 0)
+    .attr('fill', (d, i) => colors2[i])
+    .attr('opacity', 0.85)
+    .transition().duration(600).delay((d, i) => i * 80)
+    .attr('r', d => d / 5)
+  svg.selectAll('text')
+    .data(data2)
+    .join('text')
+    .attr('x', (d, i) => (i + 0.5) * (W / data2.length))
+    .attr('y', 72)
+    .attr('text-anchor', 'middle')
+    .attr('fill', '#64748b')
+    .attr('font-size', 11)
+    .text(d => d)
+}
+
+// ── Demo 3：比例尺 ──────────────────────────────────────────
+const data3 = [
+  { name: 'ECharts', val: 90 }, { name: 'D3.js', val: 75 },
+  { name: 'Tableau', val: 82 }, { name: 'Power BI', val: 88 },
+]
+function runDemo3() {
+  const svg = d3.select('#demo3')
+  const W = svg.node().clientWidth
+  svg.selectAll('*').remove()
+  const ML = 72, MR = 50
+  const xScale = d3.scaleLinear().domain([0, 100]).range([ML, W - MR])
+  const yScale = d3.scaleBand()
+    .domain(data3.map(d => d.name))
+    .range([8, 120]).padding(0.25)
+  const palette = ['#3b82f6','#10b981','#f59e0b','#8b5cf6']
+  svg.selectAll('rect')
+    .data(data3).join('rect')
+    .attr('x', ML).attr('y', d => yScale(d.name))
+    .attr('height', yScale.bandwidth()).attr('rx', 4)
+    .attr('fill', (d, i) => palette[i]).attr('width', 0)
+    .transition().duration(700).delay((d, i) => i * 100)
+    .attr('width', d => xScale(d.val) - ML)
+  svg.selectAll('text.label')
+    .data(data3).join('text').attr('class', 'label')
+    .attr('x', ML - 6).attr('y', d => yScale(d.name) + yScale.bandwidth() / 2)
+    .attr('text-anchor', 'end').attr('dominant-baseline', 'central')
+    .attr('fill', '#94a3b8').attr('font-size', 12).text(d => d.name)
+  svg.selectAll('text.val')
+    .data(data3).join('text').attr('class', 'val')
+    .attr('x', d => xScale(d.val) + 6)
+    .attr('y', d => yScale(d.name) + yScale.bandwidth() / 2)
+    .attr('dominant-baseline', 'central')
+    .attr('fill', '#64748b').attr('font-size', 11).text(d => d.val + '%')
+}
+
+// ── Demo 4：坐标轴 ──────────────────────────────────────────
+function runDemo4() {
+  const svg = d3.select('#demo4')
+  const W = svg.node().clientWidth
+  svg.selectAll('*').remove()
+  const xScale = d3.scaleLinear().domain([0, 100]).range([40, W - 30])
+  const axis = d3.axisBottom(xScale).ticks(6).tickFormat(d => d + '%')
+  const g = svg.append('g').attr('transform', 'translate(0,36)').call(axis)
+  g.select('.domain').attr('stroke', '#334155')
+  g.selectAll('.tick line').attr('stroke', '#334155')
+  g.selectAll('.tick text').attr('fill', '#94a3b8').attr('font-size', 11)
+  // 加一条竖轴
+  const yAxis = d3.axisLeft(d3.scaleLinear().domain([0,1]).range([60,10])).ticks(0)
+  svg.append('g').attr('transform','translate(40,0)').call(yAxis)
+    .select('.domain').attr('stroke','#334155')
+  svg.append('text').attr('x', W/2).attr('y', 65)
+    .attr('text-anchor','middle').attr('fill','#475569').attr('font-size',11)
+    .text('← D3 自动计算刻度位置，不需要手动算 →')
+}
+
+// ── Demo 5：过渡动画 ────────────────────────────────────────
+let d5state = 0
+const d5states = [
+  { w: 60,  fill: '#3b82f6', label: '← 点击看动画' },
+  { w: 320, fill: '#10b981', label: '← 变长了！' },
+  { w: 160, fill: '#f59e0b', label: '← 缩短变色' },
+  { w: 220, fill: '#8b5cf6', label: '← 又变了' },
+]
+function runDemo5() {
+  d5state = (d5state + 1) % d5states.length
+  const s = d5states[d5state]
+  const svg = d3.select('#demo5')
+  const W = svg.node().clientWidth
+  const maxW = W - 100
+  d3.select('#d5-bar')
+    .transition().duration(800).ease(d3.easeCubicInOut)
+    .attr('width', Math.min(s.w, maxW))
+    .attr('fill', s.fill)
+  d3.select('#d5-label')
+    .attr('x', Math.min(s.w, maxW) + 28)
+    .attr('fill', '#64748b')
+    .text(s.label)
+}
+
+// ── Demo 6：事件交互 ────────────────────────────────────────
+const data6 = [
+  { name: '条形图', val: 88 }, { name: '折线图', val: 72 },
+  { name: '饼图',   val: 60 }, { name: '散点图', val: 55 },
+  { name: '热力图', val: 45 },
+]
+const colors6 = ['#3b82f6','#10b981','#f59e0b','#8b5cf6','#ec4899']
+
+;(function initDemo6() {
+  const svg = d3.select('#demo6')
+  const W = () => svg.node().clientWidth
+  const ML = 58, MR = 20
+
+  function draw() {
+    const w = W()
+    svg.selectAll('*').remove()
+    const xScale = d3.scaleLinear().domain([0, 100]).range([ML, w - MR])
+    const yScale = d3.scaleBand().domain(data6.map(d=>d.name)).range([4,86]).padding(0.2)
+
+    const bars = svg.selectAll('rect')
+      .data(data6).join('rect')
+      .attr('x', ML).attr('y', d => yScale(d.name))
+      .attr('width', d => xScale(d.val) - ML)
+      .attr('height', yScale.bandwidth()).attr('rx', 4)
+      .attr('fill', (d,i) => colors6[i]).attr('cursor','pointer')
+
+    svg.selectAll('text.lbl').data(data6).join('text').attr('class','lbl')
+      .attr('x', ML-6).attr('y', d=>yScale(d.name)+yScale.bandwidth()/2)
+      .attr('text-anchor','end').attr('dominant-baseline','central')
+      .attr('fill','#94a3b8').attr('font-size',11).text(d=>d.name)
+      .attr('pointer-events','none')
+
+    const tip = svg.append('text').attr('class','tip-text')
+      .attr('x', w/2).attr('y', 78).attr('text-anchor','middle')
+      .attr('fill','#fbbf24').attr('font-size',12).attr('opacity',0)
+
+    bars
+      .on('mouseover', function(event, d) {
+        d3.select(this).transition().duration(150).attr('opacity', 0.7)
+        tip.attr('opacity',1).text(`${d.name}：使用率 ${d.val}%`)
+      })
+      .on('mouseleave', function() {
+        d3.select(this).transition().duration(150).attr('opacity', 1)
+        tip.attr('opacity', 0)
+      })
+      .on('click', function(event, d) {
+        d3.select(this).transition().duration(300)
+          .attr('fill','#f97316').transition().duration(400)
+          .attr('fill', (dd,i) => colors6[data6.indexOf(dd)])
+      })
+  }
+  draw()
+})()
+</script>
+</body>
+</html>

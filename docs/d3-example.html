@@ -1,0 +1,262 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>D3.js 力导向图示例</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #0f172a;
+      font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: #e2e8f0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      min-height: 100vh;
+    }
+    h1 {
+      margin: 28px 0 4px;
+      font-size: 1.4rem;
+      color: #93c5fd;
+      letter-spacing: 2px;
+    }
+    p.subtitle {
+      font-size: 0.85rem;
+      color: #64748b;
+      margin-bottom: 16px;
+    }
+    #chart {
+      width: 860px;
+      max-width: 98vw;
+      height: 560px;
+      background: #1e293b;
+      border-radius: 16px;
+      border: 1px solid #334155;
+      overflow: hidden;
+      position: relative;
+    }
+    svg { width: 100%; height: 100%; }
+
+    /* 连线 */
+    .link {
+      stroke: #334155;
+      stroke-opacity: 0.9;
+    }
+    /* 节点圆 */
+    .node circle {
+      stroke-width: 2;
+      cursor: grab;
+      transition: r 0.15s;
+    }
+    .node circle:active { cursor: grabbing; }
+    /* 节点文字 */
+    .node text {
+      font-size: 12px;
+      fill: #e2e8f0;
+      pointer-events: none;
+      text-anchor: middle;
+      dominant-baseline: central;
+    }
+
+    /* tooltip */
+    #tooltip {
+      position: absolute;
+      background: #0f172a;
+      border: 1px solid #475569;
+      border-radius: 8px;
+      padding: 10px 14px;
+      font-size: 13px;
+      pointer-events: none;
+      opacity: 0;
+      transition: opacity 0.2s;
+      max-width: 220px;
+      line-height: 1.6;
+    }
+    #tooltip .name  { font-weight: bold; color: #93c5fd; }
+    #tooltip .desc  { color: #94a3b8; font-size: 12px; margin-top: 4px; }
+
+    .legend {
+      display: flex;
+      gap: 20px;
+      margin: 14px 0 24px;
+      flex-wrap: wrap;
+      justify-content: center;
+    }
+    .legend-item {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      font-size: 13px;
+      color: #94a3b8;
+    }
+    .legend-dot {
+      width: 12px; height: 12px;
+      border-radius: 50%;
+      flex-shrink: 0;
+    }
+    .hint {
+      font-size: 12px;
+      color: #475569;
+      margin-top: 10px;
+    }
+  </style>
+</head>
+<body>
+
+<h1>📊 图表知识关系图</h1>
+<p class="subtitle">D3.js 力导向图 · 拖动节点可交互</p>
+
+<div id="chart">
+  <div id="tooltip"></div>
+</div>
+
+<div class="legend" id="legend"></div>
+<p class="hint">💡 拖动任意节点 · 悬停查看说明 · 节点大小 = 使用频率</p>
+
+<!-- D3.js v7 from CDN -->
+<script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+<script>
+// ─── 数据定义 ─────────────────────────────────────────────────
+const categories = [
+  { id: 'cat-compare',   label: '对比',  color: '#3b82f6' },
+  { id: 'cat-trend',     label: '趋势',  color: '#10b981' },
+  { id: 'cat-ratio',     label: '占比',  color: '#f59e0b' },
+  { id: 'cat-dist',      label: '分布',  color: '#8b5cf6' },
+  { id: 'cat-relation',  label: '关系',  color: '#ec4899' },
+  { id: 'cat-hierarchy', label: '层级',  color: '#14b8a6' },
+  { id: 'cat-flow',      label: '流向',  color: '#f97316' },
+]
+
+const charts = [
+  { id: 'bar',      name: '柱状图',   cat: 'cat-compare',   r: 26, desc: '分类数据对比，最常用图表之一' },
+  { id: 'line',     name: '折线图',   cat: 'cat-trend',     r: 26, desc: '时间序列趋势分析' },
+  { id: 'pie',      name: '饼图',     cat: 'cat-ratio',     r: 24, desc: '展示整体与部分的比例关系' },
+  { id: 'scatter',  name: '散点图',   cat: 'cat-relation',  r: 24, desc: '两变量之间的相关性' },
+  { id: 'heatmap',  name: '热力图',   cat: 'cat-dist',      r: 22, desc: '二维矩阵的数值密度分布' },
+  { id: 'boxplot',  name: '箱线图',   cat: 'cat-dist',      r: 20, desc: '数据的五数概括：分布与异常值' },
+  { id: 'area',     name: '面积图',   cat: 'cat-trend',     r: 20, desc: '趋势 + 强调累计量' },
+  { id: 'radar',    name: '雷达图',   cat: 'cat-compare',   r: 20, desc: '多维度综合评估' },
+  { id: 'funnel',   name: '漏斗图',   cat: 'cat-flow',      r: 20, desc: '流程各阶段的转化率' },
+  { id: 'treemap',  name: '树图',     cat: 'cat-hierarchy', r: 20, desc: '层级结构按面积映射' },
+  { id: 'sankey',   name: '桑基图',   cat: 'cat-flow',      r: 20, desc: '流量在节点间的分配与流向' },
+  { id: 'chord',    name: '弦图',     cat: 'cat-relation',  r: 18, desc: '群体间交叉关系与流量' },
+  { id: 'hist',     name: '直方图',   cat: 'cat-dist',      r: 20, desc: '连续变量的频率分布' },
+  { id: 'stacked',  name: '堆叠柱图', cat: 'cat-compare',   r: 18, desc: '子类占比 + 总量对比' },
+  { id: 'sunburst', name: '旭日图',   cat: 'cat-hierarchy', r: 18, desc: '多层级的比例展示' },
+  { id: 'force',    name: '力导向图', cat: 'cat-relation',  r: 18, desc: '节点间连接关系的网络图' },
+  { id: 'hexbin',   name: '六边形图', cat: 'cat-dist',      r: 16, desc: '大量散点的密度分箱' },
+]
+
+// 边：图表 → 所属分类
+const links = charts.map(c => ({ source: c.id, target: c.cat, value: 1 }))
+// 额外：同类图表之间加弱边增加聚合感
+const samecat = {}
+charts.forEach(c => { (samecat[c.cat] = samecat[c.cat] || []).push(c.id) })
+Object.values(samecat).forEach(ids => {
+  for (let i = 0; i < ids.length - 1; i++) {
+    links.push({ source: ids[i], target: ids[i + 1], value: 0.3 })
+  }
+})
+
+const catMap = Object.fromEntries(categories.map(c => [c.id, c]))
+const nodes = [
+  ...categories.map(c => ({ id: c.id, name: c.label, r: 30, iscat: true, color: c.color, desc: `图表大类：${c.label}类` })),
+  ...charts.map(c => ({ ...c, color: catMap[c.cat].color, iscat: false }))
+]
+
+// ─── 图例 ─────────────────────────────────────────────────────
+const legendEl = document.getElementById('legend')
+categories.forEach(c => {
+  legendEl.innerHTML += `
+    <div class="legend-item">
+      <div class="legend-dot" style="background:${c.color}"></div>
+      <span>${c.label}</span>
+    </div>`
+})
+
+// ─── D3 力导向图 ──────────────────────────────────────────────
+const container = document.getElementById('chart')
+const W = container.clientWidth
+const H = container.clientHeight
+
+const svg = d3.select('#chart').append('svg')
+
+// zoom
+const g = svg.append('g')
+svg.call(d3.zoom()
+  .scaleExtent([0.4, 3])
+  .on('zoom', e => g.attr('transform', e.transform))
+)
+
+// 力模型
+const sim = d3.forceSimulation(nodes)
+  .force('link', d3.forceLink(links).id(d => d.id).distance(d => d.value === 1 ? 90 : 55).strength(d => d.value === 1 ? 0.6 : 0.15))
+  .force('charge', d3.forceManyBody().strength(-320))
+  .force('center', d3.forceCenter(W / 2, H / 2))
+  .force('collide', d3.forceCollide(d => d.r + 6))
+
+// 连线
+const link = g.append('g')
+  .selectAll('line')
+  .data(links)
+  .join('line')
+  .attr('class', 'link')
+  .attr('stroke-width', d => d.value === 1 ? 1.5 : 0.5)
+  .attr('stroke-dasharray', d => d.value < 1 ? '3,4' : null)
+
+// 节点
+const node = g.append('g')
+  .selectAll('g')
+  .data(nodes)
+  .join('g')
+  .attr('class', 'node')
+  .call(d3.drag()
+    .on('start', (e, d) => { if (!e.active) sim.alphaTarget(0.3).restart(); d.fx = d.x; d.fy = d.y })
+    .on('drag',  (e, d) => { d.fx = e.x; d.fy = e.y })
+    .on('end',   (e, d) => { if (!e.active) sim.alphaTarget(0); d.fx = null; d.fy = null })
+  )
+
+// 圆
+node.append('circle')
+  .attr('r', d => d.r)
+  .attr('fill', d => d.iscat ? d.color + '33' : d.color + '22')
+  .attr('stroke', d => d.color)
+  .attr('stroke-width', d => d.iscat ? 2.5 : 1.5)
+
+// 文字
+node.append('text')
+  .text(d => d.name)
+  .attr('font-size', d => d.iscat ? 14 : 11)
+  .attr('font-weight', d => d.iscat ? 'bold' : 'normal')
+  .attr('fill', d => d.iscat ? d.color : '#cbd5e1')
+
+// tooltip
+const tip = document.getElementById('tooltip')
+
+node
+  .on('mouseover', (e, d) => {
+    tip.innerHTML = `<div class="name">${d.name}</div><div class="desc">${d.desc}</div>`
+    tip.style.opacity = 1
+  })
+  .on('mousemove', e => {
+    const rect = container.getBoundingClientRect()
+    let x = e.clientX - rect.left + 12
+    let y = e.clientY - rect.top + 12
+    if (x + 240 > rect.width)  x -= 260
+    if (y + 80  > rect.height) y -= 80
+    tip.style.left = x + 'px'
+    tip.style.top  = y + 'px'
+  })
+  .on('mouseleave', () => { tip.style.opacity = 0 })
+
+// tick
+sim.on('tick', () => {
+  link
+    .attr('x1', d => d.source.x).attr('y1', d => d.source.y)
+    .attr('x2', d => d.target.x).attr('y2', d => d.target.y)
+  node.attr('transform', d => `translate(${d.x},${d.y})`)
+})
+</script>
+</body>
+</html>

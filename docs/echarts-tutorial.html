@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>ECharts 核心教程</title>
+  <style>
+    :root {
+      --bg:#0f172a; --card:#1e293b; --border:#334155;
+      --blue:#3b82f6; --green:#10b981; --yellow:#f59e0b;
+      --purple:#8b5cf6; --pink:#ec4899; --orange:#f97316;
+      --text:#e2e8f0; --muted:#64748b;
+    }
+    * { margin:0; padding:0; box-sizing:border-box; }
+    body {
+      background:var(--bg);
+      font-family:"PingFang SC","Microsoft YaHei",sans-serif;
+      color:var(--text); padding:32px 16px 60px; line-height:1.7;
+    }
+    .container { max-width:860px; margin:0 auto; }
+    .page-title { font-size:1.8rem; font-weight:900; color:#fbbf24; letter-spacing:2px; }
+    .page-sub   { color:var(--muted); font-size:0.9rem; margin:6px 0 36px; }
+
+    .toc {
+      background:var(--card); border:1px solid var(--border);
+      border-radius:12px; padding:18px 24px; margin-bottom:36px;
+    }
+    .toc h3 { font-size:0.9rem; color:var(--muted); margin-bottom:10px; letter-spacing:1px; }
+    .toc a  { display:inline-block; margin:3px 10px 3px 0; font-size:0.85rem;
+              color:var(--yellow,#fbbf24); text-decoration:none; }
+    .toc a:hover { text-decoration:underline; }
+
+    .section {
+      background:var(--card); border:1px solid var(--border);
+      border-radius:16px; padding:28px 28px 24px; margin-bottom:28px;
+    }
+    .section-header { display:flex; align-items:center; gap:12px; margin-bottom:14px; }
+    .section-num {
+      width:32px; height:32px; border-radius:50%;
+      display:flex; align-items:center; justify-content:center;
+      font-weight:900; font-size:0.85rem; flex-shrink:0;
+    }
+    .section h2 { font-size:1.15rem; color:#e2e8f0; }
+    .section p  { color:#94a3b8; font-size:0.92rem; margin-bottom:12px; }
+    .section p strong { color:#e2e8f0; }
+
+    pre {
+      background:#0f172a; border:1px solid var(--border);
+      border-radius:8px; padding:14px 16px; margin:12px 0;
+      font-size:0.8rem; overflow-x:auto; line-height:1.6;
+    }
+    .kw  { color:#818cf8; }
+    .fn  { color:#34d399; }
+    .str { color:#fbbf24; }
+    .cm  { color:#475569; font-style:italic; }
+    .num { color:#f97316; }
+    .key { color:#93c5fd; }
+
+    .demo-area {
+      background:#0f172a; border:1px dashed var(--border);
+      border-radius:10px; padding:12px; margin-top:14px;
+    }
+    button.run-btn {
+      margin-top:10px; padding:7px 20px;
+      background:#1e3a5f; border:1px solid #f59e0b;
+      color:#fbbf24; border-radius:8px; cursor:pointer;
+      font-size:13px; transition:background 0.15s;
+    }
+    button.run-btn:hover { background:#92400e; color:#fff; }
+
+    .tip {
+      display:flex; gap:10px; align-items:flex-start;
+      background:#78350f22; border-left:3px solid #f59e0b;
+      border-radius:0 8px 8px 0; padding:10px 14px;
+      margin-top:12px; font-size:0.85rem; color:#94a3b8;
+    }
+    .tip .icon { font-size:1rem; flex-shrink:0; margin-top:1px; }
+
+    .summary {
+      background:linear-gradient(135deg,#78350f33,#1e293b);
+      border:1px solid #f59e0b; border-radius:16px;
+      padding:28px; margin-top:8px;
+    }
+    .summary h2 { color:#fbbf24; margin-bottom:16px; }
+    .summary table { width:100%; border-collapse:collapse; font-size:0.88rem; }
+    .summary th { text-align:left; color:var(--muted); font-weight:600;
+                  padding:6px 12px; border-bottom:1px solid var(--border); }
+    .summary td { padding:8px 12px; border-bottom:1px solid #1e293b; color:#94a3b8; }
+    .summary td:first-child { color:#fbbf24; font-family:monospace; }
+
+    .path-block {
+      border:1px solid #1e3a5f; border-radius:8px; padding:14px 18px; margin-bottom:12px;
+    }
+    .path-header {
+      display:flex; align-items:center; gap:8px; margin-bottom:10px;
+    }
+    .path-badge {
+      border-radius:20px; padding:2px 12px;
+      font-size:12px; font-weight:700; flex-shrink:0;
+    }
+    .path-title { font-weight:700; }
+    .path-duration { margin-left:auto; font-size:12px; color:#64748b; }
+    .path-table { width:100%; border-collapse:collapse; font-size:0.85rem; }
+    .path-table th {
+      text-align:left; padding:5px 10px; color:#64748b; width:150px;
+      border-bottom:1px solid #1e3a5f;
+    }
+    .path-table td { padding:6px 10px; border-bottom:1px solid #1e293b; }
+    .path-table td:first-child { color:#fbbf24; }
+    .path-table td:last-child  { color:#94a3b8; }
+    .path-tip { margin-top:8px; font-size:12px; color:#475569; }
+  </style>
+</head>
+<body>
+<div class="container">
+
+  <div class="page-title">ECharts 核心教程</div>
+  <p class="page-sub">6 个核心概念 · 每个概念配实时可运行 Demo · 掌握 ECharts 的正确思维方式</p>
+
+  <div class="toc">
+    <h3>📋 目录</h3>
+    <a href="#s1">① 初始化与 option</a>
+    <a href="#s2">② 图表类型 series</a>
+    <a href="#s3">③ 坐标轴配置</a>
+    <a href="#s4">④ 数据集 dataset</a>
+    <a href="#s5">⑤ 事件交互</a>
+    <a href="#s6">⑥ 样式与主题</a>
+    <a href="#s7">⑦ 学习路径</a>
+    <a href="#summary">⑧ 总结速查</a>
+  </div>
+
+
+  <!-- ① 初始化与 option -->
+  <div class="section" id="s1">
+    <div class="section-header">
+      <div class="section-num" style="background:#78350f33;color:#fbbf24;">01</div>
+      <h2>初始化与 option —— ECharts 的核心思维</h2>
+    </div>
+    <p>ECharts 与 D3 最大的区别：<strong>你不操作 DOM，只写一份"配置对象"（option），ECharts 负责渲染一切</strong>。</p>
+    <pre><span class="cm">// 第一步：准备一个有宽高的 div</span>
+<span class="cm">// &lt;div id="chart" style="width:600px;height:300px"&gt;&lt;/div&gt;</span>
+
+<span class="cm">// 第二步：初始化</span>
+<span class="kw">const</span> chart = echarts.<span class="fn">init</span>(document.<span class="fn">getElementById</span>(<span class="str">'chart'</span>))
+
+<span class="cm">// 第三步：写 option，setOption 一次搞定所有</span>
+chart.<span class="fn">setOption</span>({
+  <span class="key">title</span>:   { <span class="key">text</span>: <span class="str">'我的第一个图表'</span> },
+  <span class="key">tooltip</span>: { <span class="key">trigger</span>: <span class="str">'axis'</span> },   <span class="cm">// 悬停提示</span>
+  <span class="key">xAxis</span>:   { <span class="key">data</span>: [<span class="str">'Mon'</span>,<span class="str">'Tue'</span>,<span class="str">'Wed'</span>,<span class="str">'Thu'</span>,<span class="str">'Fri'</span>] },
+  <span class="key">yAxis</span>:   {},                        <span class="cm">// 自动推断范围</span>
+  <span class="key">series</span>:  [{ <span class="key">type</span>: <span class="str">'bar'</span>, <span class="key">data</span>: [<span class="num">120</span>,<span class="num">200</span>,<span class="num">150</span>,<span class="num">80</span>,<span class="num">170</span>] }]
+})</pre>
+    <div class="demo-area">
+      <div id="demo1" style="width:100%;height:200px;"></div>
+    </div>
+    <button class="run-btn" onclick="runDemo1()">▶ 运行：初始化一个柱状图</button>
+    <div class="tip"><span class="icon">💡</span><span><strong>核心思维</strong>：ECharts = "声明你想要什么"。option 是一份 JSON 描述，告诉 ECharts"我要什么图、数据是什么、轴怎么配"，渲染细节全部交给 ECharts 内部处理。</span></div>
+  </div>
+
+
+  <!-- ② 图表类型 series -->
+  <div class="section" id="s2">
+    <div class="section-header">
+      <div class="section-num" style="background:#1d4ed822;color:#60a5fa;">02</div>
+      <h2>图表类型 —— <code>series.type</code></h2>
+    </div>
+    <p>ECharts 只需改一个字段 <code>series.type</code> 就能切换图表类型。<strong>数据格式不变，类型随意切</strong>。</p>
+    <pre><span class="cm">// 改 type 就换图，数据格式相同时甚至可以混用</span>
+<span class="key">series</span>: [
+  { <span class="key">type</span>: <span class="str">'bar'</span>,     <span class="key">data</span>: [...] },  <span class="cm">// 柱状图</span>
+  { <span class="key">type</span>: <span class="str">'line'</span>,    <span class="key">data</span>: [...] },  <span class="cm">// 折线图</span>
+  { <span class="key">type</span>: <span class="str">'scatter'</span>, <span class="key">data</span>: [...] },  <span class="cm">// 散点图</span>
+  { <span class="key">type</span>: <span class="str">'pie'</span>,
+    <span class="key">data</span>: [{ <span class="key">name</span>:<span class="str">'A'</span>, <span class="key">value</span>:<span class="num">30</span> }, ...] },  <span class="cm">// 饼图（格式稍不同）</span>
+]
+<span class="cm">// 同一个图表里可以放多个 series，实现"柱+线"混合图</span></pre>
+    <div class="demo-area">
+      <div id="demo2" style="width:100%;height:200px;"></div>
+    </div>
+    <div style="display:flex;gap:8px;flex-wrap:wrap;margin-top:10px;">
+      <button class="run-btn" onclick="setType('bar')">柱状图</button>
+      <button class="run-btn" onclick="setType('line')">折线图</button>
+      <button class="run-btn" onclick="setType('scatter')">散点图</button>
+      <button class="run-btn" onclick="setType('bar_line')">柱+线混合</button>
+    </div>
+    <div class="tip"><span class="icon">💡</span><span>一个 option 里可以有<strong>多个 series</strong>，每个 series 可以是不同类型，ECharts 自动叠加渲染。这是 ECharts 比 D3 方便得多的地方。</span></div>
+  </div>
+
+
+  <!-- ③ 坐标轴 -->
+  <div class="section" id="s3">
+    <div class="section-header">
+      <div class="section-num" style="background:#06463322;color:#34d399;">03</div>
+      <h2>坐标轴配置 —— <code>xAxis / yAxis</code></h2>
+    </div>
+    <p>ECharts 的轴是<strong>声明式</strong>的：写清楚类型和数据，刻度、间距、标签自动计算。常见类型有 <code>category</code>（分类轴）和 <code>value</code>（数值轴）。</p>
+    <pre><span class="key">xAxis</span>: {
+  <span class="key">type</span>: <span class="str">'category'</span>,                    <span class="cm">// 分类轴：等间距排列</span>
+  <span class="key">data</span>: [<span class="str">'一月'</span>,<span class="str">'二月'</span>,<span class="str">'三月'</span>,<span class="str">'四月'</span>],
+  <span class="key">axisLabel</span>: { <span class="key">rotate</span>: <span class="num">30</span> }            <span class="cm">// 标签旋转，防重叠</span>
+},
+<span class="key">yAxis</span>: {
+  <span class="key">type</span>: <span class="str">'value'</span>,                       <span class="cm">// 数值轴：自动计算范围</span>
+  <span class="key">name</span>: <span class="str">'销售额（万元）'</span>,
+  <span class="key">splitLine</span>: { <span class="key">lineStyle</span>: { <span class="key">type</span>:<span class="str">'dashed'</span> } }
+}
+<span class="cm">// 还有 time（时间轴）和 log（对数轴）</span></pre>
+    <div class="demo-area">
+      <div id="demo3" style="width:100%;height:220px;"></div>
+    </div>
+    <button class="run-btn" onclick="runDemo3()">▶ 运行：带格式化标签的坐标轴</button>
+    <div class="tip"><span class="icon">💡</span><span>轴的 <code>type</code> 非常关键：<code>category</code> 用于文字标签（产品名/月份），<code>value</code> 用于连续数值，<code>time</code> 用于时间序列，<code>log</code> 用于数量级差距很大的数据。</span></div>
+  </div>
+
+
+  <!-- ④ dataset -->
+  <div class="section" id="s4">
+    <div class="section-header">
+      <div class="section-num" style="background:#4c1d9522;color:#a78bfa;">04</div>
+      <h2>数据集 —— <code>dataset + encode</code></h2>
+    </div>
+    <p><strong>dataset 是 ECharts 更现代的数据写法</strong>：数据集中管理，多个 series 共享同一份数据，用 <code>encode</code> 指定哪列映射到哪个轴。</p>
+    <pre><span class="key">dataset</span>: {
+  <span class="key">source</span>: [
+    [<span class="str">'产品'</span>, <span class="str">'销售额'</span>, <span class="str">'利润'</span>],   <span class="cm">// 第一行是列名</span>
+    [<span class="str">'手机'</span>,    <span class="num">820</span>,    <span class="num">120</span>],
+    [<span class="str">'电脑'</span>,    <span class="num">932</span>,    <span class="num">200</span>],
+    [<span class="str">'平板'</span>,    <span class="num">601</span>,     <span class="num">80</span>],
+  ]
+},
+<span class="key">series</span>: [
+  { <span class="key">type</span>: <span class="str">'bar'</span>,  <span class="key">encode</span>: { <span class="key">x</span>:<span class="str">'产品'</span>, <span class="key">y</span>:<span class="str">'销售额'</span> } },
+  { <span class="key">type</span>: <span class="str">'line'</span>, <span class="key">encode</span>: { <span class="key">x</span>:<span class="str">'产品'</span>, <span class="key">y</span>:<span class="str">'利润'</span>  } },
+]
+<span class="cm">// 两个 series 共享同一份 dataset，数据只写一次</span></pre>
+    <div class="demo-area">
+      <div id="demo4" style="width:100%;height:220px;"></div>
+    </div>
+    <button class="run-btn" onclick="runDemo4()">▶ 运行：dataset 驱动多系列图表</button>
+    <div class="tip"><span class="icon">💡</span><span><strong>推荐用 dataset</strong>：数据与图表逻辑分离，改数据不用改 series，多 series 共享同一份数据来源，维护更方便。适合从 CSV/API 加载数据的场景。</span></div>
+  </div>
+
+
+  <!-- ⑤ 事件交互 -->
+  <div class="section" id="s5">
+    <div class="section-header">
+      <div class="section-num" style="background:#83144022;color:#f472b6;">05</div>
+      <h2>事件交互 —— <code>chart.on()</code></h2>
+    </div>
+    <p>ECharts 提供丰富的<strong>图表级事件</strong>（不是 DOM 事件），点击柱子直接拿到该柱子的完整数据，不需要自己解析坐标。</p>
+    <pre><span class="cm">// 点击图表元素</span>
+chart.<span class="fn">on</span>(<span class="str">'click'</span>, (params) => {
+  console.<span class="fn">log</span>(params.<span class="key">name</span>)    <span class="cm">// 被点击项的名称</span>
+  console.<span class="fn">log</span>(params.<span class="key">value</span>)   <span class="cm">// 被点击项的数值</span>
+  console.<span class="fn">log</span>(params.<span class="key">seriesName</span>) <span class="cm">// 系列名称</span>
+})
+
+<span class="cm">// 悬停高亮</span>
+chart.<span class="fn">on</span>(<span class="str">'mouseover'</span>, (params) => { ... })
+
+<span class="cm">// 动态更新数据（直接 setOption 增量合并）</span>
+chart.<span class="fn">setOption</span>({ <span class="key">series</span>: [{ <span class="key">data</span>: newData }] })
+<span class="cm">// ECharts 自动做动画过渡，不需要手写 transition</span></pre>
+    <div class="demo-area">
+      <div id="demo5" style="width:100%;height:200px;"></div>
+      <div id="demo5-info" style="text-align:center;font-size:13px;color:#64748b;margin-top:6px;">👆 点击任意扇形查看数据</div>
+    </div>
+    <button class="run-btn" onclick="runDemo5()">▶ 运行：可点击的饼图</button>
+    <div class="tip"><span class="icon">💡</span><span><strong>ECharts 事件 vs D3 事件</strong>：D3 用原生 DOM 事件，回调里拿 <code>d</code>（绑定数据）；ECharts 用图表级事件，回调里拿 <code>params</code> 对象，直接包含 name/value/dataIndex 等，更方便。</span></div>
+  </div>
+
+
+  <!-- ⑥ 样式与主题 -->
+  <div class="section" id="s6">
+    <div class="section-header">
+      <div class="section-num" style="background:#7c2d1222;color:#fb923c;">06</div>
+      <h2>样式与主题定制 —— <code>itemStyle / theme</code></h2>
+    </div>
+    <p>ECharts 提供<strong>三个层次的样式控制</strong>：全局主题 → series 级别 → 单项级别，越靠后优先级越高。</p>
+    <pre><span class="cm">// 1. 初始化时传入内置主题（'dark' 是内置主题）</span>
+<span class="kw">const</span> chart = echarts.<span class="fn">init</span>(dom, <span class="str">'dark'</span>)
+
+<span class="cm">// 2. series 级别：整体样式</span>
+<span class="key">series</span>: [{
+  <span class="key">type</span>: <span class="str">'bar'</span>,
+  <span class="key">itemStyle</span>: {
+    <span class="key">color</span>: <span class="str">'#3b82f6'</span>,           <span class="cm">// 统一颜色</span>
+    <span class="key">borderRadius</span>: [<span class="num">4</span>,<span class="num">4</span>,<span class="num">0</span>,<span class="num">0</span>],  <span class="cm">// 顶部圆角</span>
+  },
+  <span class="key">label</span>: { <span class="key">show</span>: <span class="kw">true</span>, <span class="key">position</span>: <span class="str">'top'</span> }  <span class="cm">// 显示数据标签</span>
+}]
+
+<span class="cm">// 3. 单项级别：给某一根柱子特殊颜色</span>
+<span class="key">data</span>: [
+  <span class="num">120</span>, <span class="num">200</span>,
+  { <span class="key">value</span>:<span class="num">350</span>, <span class="key">itemStyle</span>:{ <span class="key">color</span>:<span class="str">'#f97316'</span> } }, <span class="cm">// 高亮这一项</span>
+  <span class="num">80</span>, <span class="num">170</span>
+]</pre>
+    <div class="demo-area">
+      <div id="demo6" style="width:100%;height:200px;"></div>
+    </div>
+    <button class="run-btn" onclick="runDemo6()">▶ 运行：圆角柱 + 最高值高亮</button>
+    <div class="tip"><span class="icon">💡</span><span>ECharts 还支持<strong>渐变色</strong>：<code>color: new echarts.graphic.LinearGradient(0,0,0,1,[{offset:0,color:'#3b82f6'},{offset:1,color:'#1d4ed8'}])</code>，可以做出从上到下的渐变柱子。</span></div>
+  </div>
+
+
+  <!-- ⑦ 学习路径 -->
+  <div class="section" id="s7">
+    <div class="section-header">
+      <div class="section-num" style="background:#05462222;color:#34d399;">07</div>
+      <h2>掌握 ECharts 的学习路径与技术栈</h2>
+    </div>
+    <p>ECharts 入门门槛低，但要用好仍需系统学习。以下是从零到能独立开发业务可视化项目的完整路径。</p>
+
+    <!-- 阶段一 -->
+    <div class="path-block" style="border-left:4px solid #3b82f6;">
+      <div class="path-header">
+        <span class="path-badge" style="background:#1d4ed8;color:#fff;">阶段一</span>
+        <span class="path-title" style="color:#93c5fd;">基础前置（门槛极低）</span>
+        <span class="path-duration">建议时长：1–2 周</span>
+      </div>
+      <table class="path-table">
+        <tr><th>技术</th><th>需要掌握到什么程度</th></tr>
+        <tr><td>HTML</td><td>会写一个有宽高的 <code style="color:#34d399;">&lt;div&gt;</code> 就够了，ECharts 在里面渲染 Canvas/SVG</td></tr>
+        <tr><td>CSS</td><td>能控制 div 的宽高、布局，不需要了解 SVG</td></tr>
+        <tr><td>JavaScript（基础）</td><td>会声明变量、写对象字面量 <code style="color:#34d399;">{ }</code>、调用函数。<strong style="color:#e2e8f0;">不需要</strong>掌握数组高阶方法或异步——比 D3 低得多</td></tr>
+      </table>
+      <div class="path-tip">✅ 完成阶段一 = 能把官方示例复制下来跑通</div>
+    </div>
+
+    <!-- 阶段二 -->
+    <div class="path-block" style="border-left:4px solid #10b981;">
+      <div class="path-header">
+        <span class="path-badge" style="background:#065f46;color:#34d399;">阶段二</span>
+        <span class="path-title" style="color:#34d399;">ECharts 核心配置（能自己写图表）</span>
+        <span class="path-duration">建议时长：2–4 周</span>
+      </div>
+      <table class="path-table">
+        <tr><th>模块</th><th>需要掌握到什么程度</th></tr>
+        <tr><td>option 结构</td><td>理解 title / legend / tooltip / xAxis / yAxis / series 各自的职责，能不看文档手写基础配置</td></tr>
+        <tr><td>常用图表类型</td><td>熟练写出：bar / line / pie / scatter；了解：radar / heatmap / funnel / gauge</td></tr>
+        <tr><td>坐标轴</td><td>会区分 category / value / time 轴，会格式化标签，会处理双 Y 轴</td></tr>
+        <tr><td>tooltip / legend</td><td>会自定义 tooltip 格式（formatter 函数），会控制图例显示/隐藏</td></tr>
+        <tr><td>dataset + encode</td><td>会用 dataset 管理数据，会用 encode 做列映射，这是规范写法</td></tr>
+        <tr><td>事件</td><td>会用 <code style="color:#34d399;">chart.on('click', params => {})</code> 做点击响应，会 setOption 动态更新数据</td></tr>
+      </table>
+      <div class="path-tip">✅ 完成阶段二 = 能独立完成业务报表需求，不需要每次翻文档</div>
+    </div>
+
+    <!-- 阶段三 -->
+    <div class="path-block" style="border-left:4px solid #f59e0b;">
+      <div class="path-header">
+        <span class="path-badge" style="background:#78350f;color:#fbbf24;">阶段三</span>
+        <span class="path-title" style="color:#fbbf24;">进阶技术栈（做复杂/大屏/工程化项目）</span>
+        <span class="path-duration">按需学习</span>
+      </div>
+      <table class="path-table">
+        <tr><th>技术/模块</th><th>需要掌握到什么程度</th></tr>
+        <tr><td>地图（geo/map）</td><td>会加载 GeoJSON，会做省市下钻，会配 visualMap 颜色映射</td></tr>
+        <tr><td>大数据渲染</td><td>了解 <code style="color:#34d399;">sampling: 'lttb'</code>（折线抽样）、<code style="color:#34d399;">large: true</code>（散点大数据模式），知道何时用 Canvas 渲染器</td></tr>
+        <tr><td>自定义系列</td><td>能用 <code style="color:#34d399;">series.type:'custom'</code> + renderItem 画 ECharts 没有的图形</td></tr>
+        <tr><td>数据大屏</td><td>了解 <code style="color:#34d399;">window.addEventListener('resize', chart.resize)</code> 响应式，会用 CSS 缩放方案（scale transform）做大屏适配</td></tr>
+        <tr><td>Vue/React 集成</td><td>会用 <code style="color:#34d399;">echarts-for-react</code> 或 <code style="color:#34d399;">vue-echarts</code>，理解组件生命周期与图表 init/dispose 的配合</td></tr>
+        <tr><td>自定义主题</td><td>会用 <a href="https://echarts.apache.org/zh/theme-builder.html" target="_blank" rel="noopener" style="color:#3b82f6;">Theme Builder</a> 工具生成主题 JSON，会注册并使用自定义主题</td></tr>
+      </table>
+    </div>
+
+    <!-- 推荐资源 -->
+    <div class="path-block" style="background:#0f172a;border-color:#334155;">
+      <div style="font-size:0.9rem;font-weight:700;color:#94a3b8;margin-bottom:10px;">📚 推荐学习资源</div>
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;font-size:0.83rem;">
+        <div style="color:#64748b;">📖 <a href="https://echarts.apache.org/zh/tutorial.html" target="_blank" rel="noopener" style="color:#fbbf24;">官方教程</a> — 中文，涵盖所有核心概念</div>
+        <div style="color:#64748b;">📖 <a href="https://echarts.apache.org/examples/zh/" target="_blank" rel="noopener" style="color:#fbbf24;">官方示例库</a> — 几百个可在线编辑的示例</div>
+        <div style="color:#64748b;">📖 <a href="https://echarts.apache.org/zh/option.html" target="_blank" rel="noopener" style="color:#fbbf24;">配置项手册</a> — 最常用文档，按需查阅</div>
+        <div style="color:#64748b;">📖 <a href="https://echarts.apache.org/zh/theme-builder.html" target="_blank" rel="noopener" style="color:#fbbf24;">Theme Builder</a> — 可视化主题配色工具</div>
+      </div>
+    </div>
+  </div>
+
+
+  <!-- ⑧ 总结速查 -->
+  <div class="summary" id="summary">
+    <h2>⚡ 核心配置项速查表</h2>
+    <table>
+      <tr><th>配置项</th><th>作用</th><th>常用值/备注</th></tr>
+      <tr><td>title</td><td>图表标题</td><td>text / subtext / left / top</td></tr>
+      <tr><td>tooltip</td><td>悬停提示框</td><td>trigger: 'axis'（轴触发）/ 'item'（项触发）</td></tr>
+      <tr><td>legend</td><td>图例</td><td>自动读取 series.name，data 可手动指定</td></tr>
+      <tr><td>xAxis / yAxis</td><td>坐标轴</td><td>type: 'category'/'value'/'time'/'log'</td></tr>
+      <tr><td>series</td><td>数据系列（核心）</td><td>type 决定图表类型，data 放数据</td></tr>
+      <tr><td>dataset</td><td>集中管理数据</td><td>source 放二维数组，encode 映射列到轴</td></tr>
+      <tr><td>visualMap</td><td>数据 → 颜色/大小映射</td><td>热力图/地图必用，continuous/piecewise 两种</td></tr>
+      <tr><td>dataZoom</td><td>数据缩放/平移</td><td>type:'slider'（滑块）/'inside'（鼠标滚轮）</td></tr>
+      <tr><td>grid</td><td>绘图区域边距</td><td>left/right/top/bottom，防标签被裁剪</td></tr>
+      <tr><td>color</td><td>全局调色板</td><td>颜色数组，series 依次取色</td></tr>
+    </table>
+  </div>
+
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/echarts@5/dist/echarts.min.js"></script>
+<script>
+const THEME = {
+  bg:      '#0f172a',
+  text:    '#94a3b8',
+  line:    '#334155',
+  colors:  ['#3b82f6','#10b981','#f59e0b','#8b5cf6','#ec4899','#f97316','#14b8a6'],
+}
+function baseOption() {
+  return {
+    backgroundColor: 'transparent',
+    textStyle:  { color: THEME.text },
+    grid:       { left:50, right:20, top:30, bottom:36 },
+    tooltip:    { trigger:'axis', backgroundColor:'#1e293b',
+                  borderColor:'#334155', textStyle:{color:'#e2e8f0'} },
+    color:      THEME.colors,
+  }
+}
+
+// ── Demo 1：初始化 ─────────────────────────────────────
+let chart1
+function runDemo1() {
+  if (chart1) chart1.dispose()
+  chart1 = echarts.init(document.getElementById('demo1'))
+  chart1.setOption({
+    ...baseOption(),
+    xAxis: { type:'category', data:['Mon','Tue','Wed','Thu','Fri'],
+             axisLine:{lineStyle:{color:THEME.line}}, axisLabel:{color:THEME.text} },
+    yAxis: { type:'value', splitLine:{lineStyle:{color:THEME.line,type:'dashed'}},
+             axisLabel:{color:THEME.text} },
+    series: [{ type:'bar', data:[120,200,150,80,170], barMaxWidth:40,
+               itemStyle:{borderRadius:[4,4,0,0]} }]
+  })
+}
+runDemo1()
+
+// ── Demo 2：图表类型切换 ──────────────────────────────
+let chart2
+const xdata = ['一月','二月','三月','四月','五月','六月']
+const ydata = [82, 135, 98, 162, 120, 180]
+
+function setType(t) {
+  if (!chart2) chart2 = echarts.init(document.getElementById('demo2'))
+  const isBarLine = t === 'bar_line'
+  chart2.setOption({
+    ...baseOption(),
+    legend: isBarLine ? { textStyle:{color:THEME.text}, top:0 } : {},
+    xAxis: { type:'category', data:xdata,
+             axisLine:{lineStyle:{color:THEME.line}}, axisLabel:{color:THEME.text} },
+    yAxis: { splitLine:{lineStyle:{color:THEME.line,type:'dashed'}}, axisLabel:{color:THEME.text} },
+    series: isBarLine
+      ? [{ name:'销售额', type:'bar', data:ydata, barMaxWidth:32, itemStyle:{borderRadius:[3,3,0,0]} },
+         { name:'趋势线', type:'line', data:ydata.map(v=>v*0.6), smooth:true }]
+      : [{ type: t==='scatter' ? 'scatter' : t,
+           data: t==='scatter' ? xdata.map((x,i)=>([i,ydata[i]])) : ydata,
+           smooth: t==='line',
+           symbolSize: 8,
+           barMaxWidth: 40,
+           itemStyle: { borderRadius: t==='bar' ? [4,4,0,0] : undefined }
+         }]
+  }, true)
+}
+setType('bar')
+
+// ── Demo 3：坐标轴 ─────────────────────────────────────
+let chart3
+function runDemo3() {
+  if (chart3) chart3.dispose()
+  chart3 = echarts.init(document.getElementById('demo3'))
+  chart3.setOption({
+    ...baseOption(),
+    grid: { left:70, right:20, top:30, bottom:50 },
+    xAxis: {
+      type:'category',
+      data:['2019年','2020年','2021年','2022年','2023年','2024年'],
+      axisLabel:{ color:THEME.text, rotate:20 },
+      axisLine:{ lineStyle:{color:THEME.line} },
+      name:'年份', nameTextStyle:{color:THEME.text}
+    },
+    yAxis: {
+      type:'value',
+      name:'销售额（万元）',
+      nameTextStyle:{ color:THEME.text },
+      axisLabel:{ color:THEME.text, formatter: v => v+'万' },
+      splitLine:{ lineStyle:{color:THEME.line,type:'dashed'} }
+    },
+    series:[{
+      type:'bar', data:[320,480,552,698,820,960],
+      barMaxWidth:44, itemStyle:{borderRadius:[4,4,0,0]},
+      label:{ show:true, position:'top', color:'#94a3b8', fontSize:11,
+              formatter: p => p.value+'万' }
+    }]
+  })
+}
+
+// ── Demo 4：dataset ────────────────────────────────────
+let chart4
+function runDemo4() {
+  if (chart4) chart4.dispose()
+  chart4 = echarts.init(document.getElementById('demo4'))
+  chart4.setOption({
+    ...baseOption(),
+    grid:{ left:60, right:20, top:50, bottom:36 },
+    legend:{ top:0, textStyle:{color:THEME.text} },
+    dataset:{
+      source:[
+        ['产品','销售额','利润'],
+        ['手机',820,180],['电脑',932,260],['平板',601,120],
+        ['耳机',420,95], ['配件',300,88],
+      ]
+    },
+    xAxis:{ type:'category', axisLabel:{color:THEME.text}, axisLine:{lineStyle:{color:THEME.line}} },
+    yAxis:{ splitLine:{lineStyle:{color:THEME.line,type:'dashed'}}, axisLabel:{color:THEME.text} },
+    series:[
+      { name:'销售额', type:'bar', encode:{x:'产品',y:'销售额'}, barMaxWidth:28,
+        itemStyle:{borderRadius:[3,3,0,0]} },
+      { name:'利润',   type:'line', encode:{x:'产品',y:'利润'}, smooth:true, symbolSize:7 }
+    ]
+  })
+}
+
+// ── Demo 5：事件交互（饼图）──────────────────────────
+let chart5
+function runDemo5() {
+  if (chart5) chart5.dispose()
+  chart5 = echarts.init(document.getElementById('demo5'))
+  const data5 = [
+    {name:'ECharts', value:38},{name:'Tableau',value:22},
+    {name:'D3.js',   value:18},{name:'Power BI',value:14},
+    {name:'其他',    value:8},
+  ]
+  chart5.setOption({
+    backgroundColor:'transparent',
+    color: THEME.colors,
+    tooltip:{ trigger:'item', backgroundColor:'#1e293b',
+              borderColor:'#334155', textStyle:{color:'#e2e8f0'},
+              formatter:'{b}: {c}% ({d}%)' },
+    legend:{ bottom:0, textStyle:{color:THEME.text} },
+    series:[{
+      type:'pie', radius:['35%','65%'], center:['50%','48%'],
+      data:data5,
+      label:{ color:THEME.text },
+      emphasis:{ itemStyle:{shadowBlur:10,shadowOffsetX:0,shadowColor:'rgba(0,0,0,.5)'} }
+    }]
+  })
+  chart5.on('click', params => {
+    document.getElementById('demo5-info').innerHTML =
+      `<span style="color:#fbbf24;font-weight:700;">✔ 你点击了：${params.name}</span>` +
+      `　占比 <span style="color:#34d399;">${params.value}%</span>` +
+      `　数据索引 <span style="color:#a78bfa;">#${params.dataIndex}</span>`
+  })
+}
+
+// ── Demo 6：样式与高亮 ────────────────────────────────
+let chart6
+function runDemo6() {
+  if (chart6) chart6.dispose()
+  chart6 = echarts.init(document.getElementById('demo6'))
+  const vals = [88, 120, 195, 75, 140]
+  const max  = Math.max(...vals)
+  chart6.setOption({
+    ...baseOption(),
+    xAxis:{ type:'category', data:['条形图','折线图','散点图','饼图','热力图'],
+            axisLabel:{color:THEME.text}, axisLine:{lineStyle:{color:THEME.line}} },
+    yAxis:{ splitLine:{lineStyle:{color:THEME.line,type:'dashed'}}, axisLabel:{color:THEME.text} },
+    series:[{
+      type:'bar', barMaxWidth:44,
+      label:{ show:true, position:'top', color:'#94a3b8', fontSize:11 },
+      data: vals.map(v => ({
+        value: v,
+        itemStyle:{
+          borderRadius:[6,6,0,0],
+          color: v === max
+            ? new echarts.graphic.LinearGradient(0,0,0,1,[
+                {offset:0,color:'#f97316'},{offset:1,color:'#92400e'}])
+            : new echarts.graphic.LinearGradient(0,0,0,1,[
+                {offset:0,color:'#3b82f6'},{offset:1,color:'#1d4ed8'}])
+        }
+      }))
+    }]
+  })
+}
+
+// 延迟初始化那些不带自动运行按钮的 demo
+window.addEventListener('load', () => {
+  // demo3 需点击触发，不自动运行
+  // demo4/5/6 同理
+})
+</script>
+</body>
+</html>

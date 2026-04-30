@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>D3.js 条形图赛跑示例</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    body {
+      background: #0f172a;
+      font-family: "PingFang SC", "Microsoft YaHei", sans-serif;
+      color: #e2e8f0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 28px 12px 40px;
+      min-height: 100vh;
+    }
+    h1 { font-size: 1.4rem; color: #93c5fd; letter-spacing: 2px; margin-bottom: 4px; }
+    p.subtitle { font-size: 0.82rem; color: #64748b; margin-bottom: 18px; }
+
+    #chart {
+      width: 820px;
+      max-width: 98vw;
+      background: #1e293b;
+      border-radius: 16px;
+      border: 1px solid #334155;
+      padding: 24px 28px 20px;
+      position: relative;
+    }
+
+    /* 年份大字 */
+    #year-label {
+      position: absolute;
+      right: 40px;
+      bottom: 56px;
+      font-size: 72px;
+      font-weight: 900;
+      color: #1d4ed8;
+      opacity: 0.18;
+      pointer-events: none;
+      -webkit-user-select: none;
+      user-select: none;
+      line-height: 1;
+    }
+
+    svg { display: block; overflow: visible; }
+
+    .bar-label {
+      font-size: 13px;
+      fill: #e2e8f0;
+      dominant-baseline: central;
+    }
+    .bar-value {
+      font-size: 12px;
+      fill: #94a3b8;
+      dominant-baseline: central;
+    }
+
+    .x-axis line, .x-axis path { stroke: #334155; }
+    .x-axis text { fill: #475569; font-size: 11px; }
+
+    /* 控制区 */
+    #controls {
+      display: flex;
+      gap: 12px;
+      margin-top: 16px;
+      align-items: center;
+      justify-content: center;
+      flex-wrap: wrap;
+    }
+    button {
+      padding: 8px 24px;
+      border-radius: 8px;
+      border: 1px solid #3b82f6;
+      background: #1e3a5f;
+      color: #93c5fd;
+      font-size: 14px;
+      cursor: pointer;
+      transition: background 0.15s;
+    }
+    button:hover { background: #1d4ed8; color: #fff; }
+    #speed-label { font-size: 13px; color: #64748b; }
+    input[type=range] { accent-color: #3b82f6; cursor: pointer; }
+
+    .hint { font-size: 12px; color: #475569; margin-top: 10px; }
+  </style>
+</head>
+<body>
+
+<h1>📈 数据可视化工具关注度赛跑</h1>
+<p class="subtitle">D3.js Transition 动画 · 模拟 2015–2024 年各工具热度变化</p>
+
+<div id="chart">
+  <div id="year-label">2015</div>
+  <svg id="svg"></svg>
+</div>
+
+<div id="controls">
+  <button id="btn-play">▶ 播放</button>
+  <button id="btn-reset">↺ 重置</button>
+  <label id="speed-label">速度：
+    <input type="range" id="speed" min="300" max="1800" value="900" step="100"> 
+  </label>
+</div>
+<p class="hint">💡 点击播放，观察各工具热度随时间的动态变化</p>
+
+<script src="https://cdn.jsdelivr.net/npm/d3@7/dist/d3.min.js"></script>
+<script>
+// ─── 数据：模拟 2015-2024 年各可视化工具关注度（万次/月 Google趋势指数）────
+const rawData = {
+  'ECharts':     [12, 18, 28, 40, 58, 72, 86, 94, 105, 115],
+  'D3.js':       [60, 72, 80, 88, 92, 90, 88, 85, 82, 80],
+  'Tableau':     [30, 42, 55, 68, 75, 80, 82, 85, 88, 90],
+  'Power BI':    [8,  18, 34, 50, 65, 75, 84, 92, 98, 106],
+  'Matplotlib':  [20, 26, 35, 44, 55, 62, 68, 74, 78, 82],
+  'Plotly':      [5,  10, 18, 30, 42, 55, 63, 72, 80, 88],
+  'Highcharts':  [35, 40, 44, 46, 48, 46, 44, 42, 40, 38],
+  'Chart.js':    [10, 20, 32, 45, 55, 62, 65, 68, 70, 72],
+  'Seaborn':     [3,   7, 14, 24, 36, 46, 54, 60, 65, 70],
+  'Vega-Lite':   [1,   2,  5, 10, 18, 26, 34, 42, 48, 54],
+}
+
+const years = d3.range(2015, 2025)
+const tools = Object.keys(rawData)
+
+// 颜色
+const palette = [
+  '#3b82f6','#10b981','#f59e0b','#8b5cf6','#ec4899',
+  '#14b8a6','#f97316','#06b6d4','#84cc16','#a78bfa'
+]
+const color = d3.scaleOrdinal(tools, palette)
+
+// 每年数据 → 排好序的数组
+function getFrame(yearIdx) {
+  return tools
+    .map(name => ({ name, value: rawData[name][yearIdx] }))
+    .sort((a, b) => b.value - a.value)
+}
+
+// ─── SVG 尺寸 ─────────────────────────────────────────────────
+const chartEl = document.getElementById('chart')
+const W = Math.min(820, window.innerWidth - 24) - 56
+const barH = 36
+const barPad = 8
+const n = tools.length
+const H = n * (barH + barPad)
+const marginLeft = 120
+const marginRight = 70
+
+const svg = d3.select('#svg')
+  .attr('width', W)
+  .attr('height', H + 30)
+
+// x 轴
+const xAxisG = svg.append('g')
+  .attr('class', 'x-axis')
+  .attr('transform', `translate(0,${H})`)
+
+// 内容层
+const barsG  = svg.append('g')
+const labelsG = svg.append('g')
+const valuesG = svg.append('g')
+
+// x scale
+const xScale = d3.scaleLinear().range([marginLeft, W - marginRight])
+
+// 年份显示
+const yearLabel = document.getElementById('year-label')
+
+// ─── 渲染一帧 ─────────────────────────────────────────────────
+function render(yearIdx, animate) {
+  const dur = animate ? +document.getElementById('speed').value : 0
+  const data = getFrame(yearIdx)
+  const maxVal = d3.max(data, d => d.value)
+  xScale.domain([0, maxVal * 1.12])
+
+  yearLabel.textContent = years[yearIdx]
+
+  // x 轴
+  xAxisG.transition().duration(dur)
+    .call(d3.axisBottom(xScale).ticks(5).tickSize(-H).tickFormat(d => d + '万'))
+
+  // y 位置函数（按当前排名）
+  const rankMap = {}
+  data.forEach((d, i) => { rankMap[d.name] = i })
+  const yPos = name => rankMap[name] * (barH + barPad)
+
+  // ── 条形 ──
+  const bars = barsG.selectAll('rect.bar')
+    .data(data, d => d.name)
+
+  bars.join(
+    enter => enter.append('rect')
+      .attr('class', 'bar')
+      .attr('x', marginLeft)
+      .attr('y', d => yPos(d.name))
+      .attr('height', barH)
+      .attr('width', 0)
+      .attr('fill', d => color(d.name))
+      .attr('rx', 4),
+    update => update,
+    exit => exit.transition().duration(dur).attr('width', 0).remove()
+  )
+  .transition().duration(dur).ease(d3.easeCubicInOut)
+    .attr('y', d => yPos(d.name))
+    .attr('width', d => xScale(d.value) - marginLeft)
+    .attr('fill', d => color(d.name))
+
+  // ── 名称标签（左） ──
+  const lbls = labelsG.selectAll('text.bar-label')
+    .data(data, d => d.name)
+
+  lbls.join(
+    enter => enter.append('text')
+      .attr('class', 'bar-label')
+      .attr('x', marginLeft - 8)
+      .attr('y', d => yPos(d.name) + barH / 2)
+      .attr('text-anchor', 'end'),
+    update => update,
+    exit => exit.remove()
+  )
+  .transition().duration(dur).ease(d3.easeCubicInOut)
+    .attr('y', d => yPos(d.name) + barH / 2)
+    .text(d => d.name)
+
+  // ── 数值标签（右） ──
+  const vals = valuesG.selectAll('text.bar-value')
+    .data(data, d => d.name)
+
+  vals.join(
+    enter => enter.append('text')
+      .attr('class', 'bar-value')
+      .attr('x', d => xScale(d.value) + 6)
+      .attr('y', d => yPos(d.name) + barH / 2),
+    update => update,
+    exit => exit.remove()
+  )
+  .transition().duration(dur).ease(d3.easeCubicInOut)
+    .attr('x', d => xScale(d.value) + 6)
+    .attr('y', d => yPos(d.name) + barH / 2)
+    .tween('text', function(d) {
+      const prev = +this.textContent.replace(/[^\d]/g, '') || 0
+      const interp = d3.interpolateNumber(prev, d.value)
+      return t => { this.textContent = Math.round(interp(t)) + '万' }
+    })
+}
+
+// ─── 播放逻辑 ─────────────────────────────────────────────────
+let currentYear = 0
+let timer = null
+
+render(0, false)
+
+function stop() {
+  if (timer) { clearInterval(timer); timer = null }
+  document.getElementById('btn-play').textContent = '▶ 播放'
+}
+
+function play() {
+  document.getElementById('btn-play').textContent = '⏸ 暂停'
+  timer = setInterval(() => {
+    currentYear++
+    if (currentYear >= years.length) { currentYear = years.length - 1; stop(); return }
+    render(currentYear, true)
+  }, +document.getElementById('speed').value + 80)
+}
+
+document.getElementById('btn-play').addEventListener('click', () => {
+  if (timer) { stop() } else {
+    if (currentYear >= years.length - 1) currentYear = 0
+    play()
+  }
+})
+
+document.getElementById('btn-reset').addEventListener('click', () => {
+  stop()
+  currentYear = 0
+  render(0, false)
+})
+
+document.getElementById('speed').addEventListener('input', () => {
+  if (timer) { stop(); play() }
+})
+</script>
+</body>
+</html>
